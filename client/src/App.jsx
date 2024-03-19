@@ -1,27 +1,55 @@
-import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
+import Home from "./containers/Home";
+import Sidebar from "./containers/Sidebar";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import StatEntry from "./containers/StatEntry";
+import { CssVarsProvider } from "@mui/joy/styles";
+import CssBaseline from "@mui/joy/CssBaseline";
+import GameDateEntry, {
+  action as GameDateEntryAction,
+} from "./containers/GameDateEntry";
+import DataEntry, { loader as DataEntryLoader } from "./containers/DataEntry";
+import ErrorPage from "./components/ErrorPage";
 
-function App() {
-  const [count, setCount] = useState(0)
-  const [data, setData] = useState('NO DATA YET')
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Sidebar />,
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        path: "/",
+        element: <Home />,
+      },
+      {
+        path: "/home",
+        element: <Home />,
+      },
+      {
+        path: "/stats",
+        element: <StatEntry />,
+      },
+      {
+        path: "/game-entry",
+        element: <GameDateEntry />,
+        action: GameDateEntryAction,
+      },
+      {
+        path: "/data-entry/:gameId",
+        element: <DataEntry />,
+        loader: DataEntryLoader,
+      },
+    ],
+  },
+]);
 
-  useEffect(() => {
-    fetch("/api/cool")
-      .then((res) => res.json())
-      .then((data) => {        
-        setData(data.message)
-      })
-  }, []);
-
+const App = () => {
   return (
-    <>
-      <div>
-        {data}
-      </div>
-    </>
-  )
-}
+    <CssVarsProvider defaultMode="system">
+      <CssBaseline />
+      <RouterProvider router={router} />
+    </CssVarsProvider>
+  );
+};
 
-export default App
+export default App;
