@@ -4,6 +4,7 @@ const miscController = require("../controllers/miscController");
 const teamController = require("../controllers/teamController");
 const dashboardController = require("../controllers/dashboardController");
 const actController = require("../controllers/actController");
+const advancedAnalyticsController = require("../controllers/advancedAnalyticsController");
 const router = express.Router();
 
 router.get("/players", playersController.getPlayers);
@@ -16,6 +17,15 @@ router.get("/games", miscController.getGames);
 router.get("/game/:gameId", miscController.getGame);
 router.get("/game-meta-data/:gameId", miscController.getGameMetaData);
 router.get("/game-log/:gameId", miscController.getGameLog);
+
+router.get(
+  "/win-rate-with-player",
+  advancedAnalyticsController.getWinRateWithPlayersLeaderboard
+);
+router.get(
+  "/win-rate-against-player/:playerId",
+  advancedAnalyticsController.getWinRateAgainstPlayer
+);
 
 router.post("/create-game", miscController.createGame);
 router.post("/team", teamController.createTeam);
