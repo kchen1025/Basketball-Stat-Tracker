@@ -4,6 +4,7 @@ import {
   getWinner,
   isWinnerInTeams,
   areTeamsAvailable,
+  isEitherTeamEmpty,
 } from "./team";
 
 import { format } from "date-fns";
@@ -39,4 +40,5 @@ export {
   getWinner,
   isWinnerInTeams,
   areTeamsAvailable,
+  isEitherTeamEmpty,
 };

@@ -7,6 +7,8 @@ const actController = require("../controllers/actController");
 const router = express.Router();
 
 router.get("/players", playersController.getPlayers);
+router.post("/player", playersController.createPlayer);
+
 router.get("/dashboard", dashboardController.getAllPlayerStats);
 router.get("/emoji", miscController.getEmoji);
 router.get("/games", miscController.getGames);

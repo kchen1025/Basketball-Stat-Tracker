@@ -42,10 +42,14 @@ const areTeamsAvailable = (team1Id, team2Id, gameStats) => {
   return (!team1Id || !team2Id) && gameStats.length;
 };
 
+const isEitherTeamEmpty = (team1Players, team2Players) =>
+  team1Players.length == 0 || team2Players.length == 0;
+
 export {
   setBothTeamPlayers,
   composeTeams,
   getWinner,
   isWinnerInTeams,
   areTeamsAvailable,
+  isEitherTeamEmpty,
 };

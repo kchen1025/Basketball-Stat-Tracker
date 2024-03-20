@@ -5,6 +5,7 @@ import InputAutocomplete from "@/components/InputAutocomplete";
 const TeamSelection = ({
   players,
   teamPlayers,
+  allSelectedPlayers,
   teamId,
   gameStats,
   setGameStats,
@@ -12,14 +13,20 @@ const TeamSelection = ({
   setGameActivityLog,
   gameData,
   onExistingPlayerSelected,
+  onNewPlayerAdded,
+  header,
 }) => {
   return (
     <Box display="flex" flexDirection={"column"} justifyContent="center">
-      <Typography level="h2">Team 1</Typography>
+      {header}
       <Divider sx={{ marginTop: 1, marginBottom: 1 }} />
       <InputAutocomplete
         players={players}
+        teamPlayers={teamPlayers}
+        allSelectedPlayers={allSelectedPlayers}
+        teamId={teamId}
         onExistingPlayerSelected={onExistingPlayerSelected}
+        onNewPlayerAdded={onNewPlayerAdded}
       />
       <TeamActivityInput
         gameStats={gameStats}

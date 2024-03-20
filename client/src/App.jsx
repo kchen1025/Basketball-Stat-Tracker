@@ -10,6 +10,7 @@ import GameDateEntry, {
 } from "./containers/GameDateEntry";
 import DataEntry, { loader as DataEntryLoader } from "./containers/DataEntry";
 import ErrorPage from "./components/ErrorPage";
+import { SnackbarProvider } from "./context/SnackbarContext";
 
 const router = createBrowserRouter([
   {
@@ -45,10 +46,12 @@ const router = createBrowserRouter([
 
 const App = () => {
   return (
-    <CssVarsProvider defaultMode="system">
-      <CssBaseline />
-      <RouterProvider router={router} />
-    </CssVarsProvider>
+    <SnackbarProvider>
+      <CssVarsProvider defaultMode="system">
+        <CssBaseline />
+        <RouterProvider router={router} />
+      </CssVarsProvider>
+    </SnackbarProvider>
   );
 };
 

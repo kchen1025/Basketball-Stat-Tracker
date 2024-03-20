@@ -13,13 +13,20 @@ import Stack from "@mui/joy/Stack";
 
 const filter = createFilterOptions();
 
+const disableSelectedPlayers = (allSelectedPlayers) => (option) =>
+  allSelectedPlayers.includes(option.id);
+
 export default function InputAutocomplete({
   players,
+  allSelectedPlayers,
+  teamId,
   onExistingPlayerSelected,
-  disabled,
+  onNewPlayerAdded,
 }) {
   const [value, setValue] = React.useState(null);
   const [open, toggleOpen] = React.useState(false);
+
+  const hasConfirmedTeam = teamId !== 0;
 
   const handleClose = () => {
     setDialogValue({
@@ -40,6 +47,7 @@ export default function InputAutocomplete({
     setValue({
       name: dialogValue.name,
     });
+    onNewPlayerAdded(dialogValue.name);
 
     handleClose();
   };
@@ -49,8 +57,8 @@ export default function InputAutocomplete({
       <FormControl>
         <FormLabel>Add a player</FormLabel>
         <Autocomplete
-          disabled={disabled}
           value={value}
+          disabled={hasConfirmedTeam}
           onChange={(event, newValue) => {
             if (typeof newValue === "string") {
               // timeout to avoid instant validation of the dialog's form.
@@ -87,6 +95,7 @@ export default function InputAutocomplete({
           }}
           options={players}
           getOptionLabel={(option) => {
+            console.log("options", option);
             // e.g. value selected with enter, right from the input
             if (typeof option === "string") {
               return option;
@@ -96,6 +105,7 @@ export default function InputAutocomplete({
             }
             return option.name;
           }}
+          getOptionDisabled={disableSelectedPlayers(allSelectedPlayers)}
           freeSolo
           selectOnFocus
           clearOnBlur

@@ -1,8 +1,23 @@
-const playersDb = require("../db/players");
+const { getAllPlayers, createPlayerDB } = require("../db/players");
 
 async function getPlayers(req, res) {
   try {
-    const players = await playersDb.getAllPlayers();
+    const players = await getAllPlayers();
+    res.send({ results: players });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error " + err);
+  }
+}
+
+async function createPlayer(req, res) {
+  try {
+    const { player_name } = req.body;
+    if (!player_name) {
+      return res.status(400).send({ error: "Missing required fields" });
+    }
+
+    const players = await createPlayerDB(player_name);
     res.send({ results: players });
   } catch (err) {
     console.error(err);
@@ -12,4 +27,5 @@ async function getPlayers(req, res) {
 
 module.exports = {
   getPlayers,
+  createPlayer,
 };

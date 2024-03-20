@@ -9,7 +9,6 @@ export const createTeams = async ({
   team2PlayerIds: team2_player_ids,
   gameId: game_id,
 }) => {
-  console.log("team", team1_player_ids, team2_player_ids, game_id);
   return await API.post("/api/teams", {
     team1_player_ids,
     team2_player_ids,

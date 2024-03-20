@@ -1,9 +1,10 @@
-import { Grid, Box, Button } from "@mui/joy";
+import { Grid, Box, Button, Typography } from "@mui/joy";
 import { useLoaderData } from "react-router-dom";
 import { getGame, getGameMetaData, getGameLog } from "@/api/game";
 import { createTeams } from "@/api/team";
-import { getAllPlayers } from "@/api/player";
+import { getAllPlayers, createPlayer } from "@/api/player";
 import { useState, useEffect } from "react";
+import { useSnackbar } from "@/context/SnackbarContext";
 
 import TeamSelection from "./components/TeamSelection";
 import DataEntryHeader from "./components/DataEntryHeader";
@@ -17,6 +18,7 @@ import {
   getWinner,
   isWinnerInTeams,
   areTeamsAvailable,
+  isEitherTeamEmpty,
 } from "./utils";
 
 // react router loader hooked up in App.jsx
@@ -28,6 +30,49 @@ export async function loader({ params }) {
 
   return { allPlayers, gameData, gameResults, gameLog };
 }
+
+const handleNewPlayerAdded =
+  ({
+    players,
+    setPlayers,
+    teamPlayers,
+    setTeamPlayers,
+    teamId,
+    gameStats,
+    setGameStats,
+    triggerSnackbar,
+  }) =>
+  async (playerName) => {
+    try {
+      // run api call to add player
+      const { results } = await createPlayer({ playerName });
+
+      // add to players
+      setPlayers([...players, ...results]);
+
+      const { id: newPlayerId, name: newPlayerName } = results[0];
+
+      // also add to team 1????
+      setTeamPlayers([...teamPlayers, newPlayerId]);
+
+      // add an empty object for that new player to their team
+      setGameStats([
+        ...gameStats,
+        {
+          ...BLANK_PLAYER,
+          player_id: newPlayerId,
+          player_name: newPlayerName,
+          team_id: teamId,
+        },
+      ]);
+    } catch (err) {
+      console.error(err);
+      triggerSnackbar({
+        message:
+          "Something went wrong with creating a player (do they already exist?)",
+      });
+    }
+  };
 
 const DataEntry = () => {
   const { allPlayers, gameData, gameResults, gameLog } = useLoaderData();
@@ -41,6 +86,8 @@ const DataEntry = () => {
 
   const [team1Players, setTeam1Players] = useState([]);
   const [team2Players, setTeam2Players] = useState([]);
+
+  const { triggerSnackbar } = useSnackbar();
 
   useEffect(() => {
     setGameStats(gameResults);
@@ -106,6 +153,13 @@ const DataEntry = () => {
   };
 
   const handleConfirmTeams = async () => {
+    if (isEitherTeamEmpty(team1Players, team2Players)) {
+      triggerSnackbar({
+        message: "Both teams must have players before confirming",
+      });
+      return;
+    }
+
     const { results: teams } = await createTeams({
       team1PlayerIds: team1Players,
       team2PlayerIds: team2Players,
@@ -113,7 +167,8 @@ const DataEntry = () => {
     });
 
     if (teams.length != 2) {
-      throw new Error("something went wrong with team creation");
+      console.error("something went wrong with team creation");
+      return;
     }
 
     const team1 = teams[0];
@@ -143,6 +198,7 @@ const DataEntry = () => {
             <TeamSelection
               players={players}
               teamPlayers={team1Players}
+              allSelectedPlayers={team1Players.concat(team2Players)}
               teamId={team1Id}
               gameStats={gameStats}
               setGameStats={setGameStats}
@@ -154,10 +210,22 @@ const DataEntry = () => {
                 setTeam1Players,
                 team1Id
               )}
+              onNewPlayerAdded={handleNewPlayerAdded({
+                players,
+                setPlayers,
+                teamPlayers: team1Players,
+                setTeamPlayers: setTeam1Players,
+                teamId: team1Id,
+                gameStats,
+                setGameStats,
+                triggerSnackbar,
+              })}
+              header={<Typography level="h2">Team 1</Typography>}
             />
             <TeamSelection
               players={players}
               teamPlayers={team2Players}
+              allSelectedPlayers={team1Players.concat(team2Players)}
               teamId={team2Id}
               gameStats={gameStats}
               setGameStats={setGameStats}
@@ -169,6 +237,17 @@ const DataEntry = () => {
                 setTeam2Players,
                 team2Id
               )}
+              onNewPlayerAdded={handleNewPlayerAdded({
+                players,
+                setPlayers,
+                teamPlayers: team2Players,
+                setTeamPlayers: setTeam2Players,
+                teamId: team2Id,
+                gameStats,
+                setGameStats,
+                triggerSnackbar,
+              })}
+              header={<Typography level="h2">Team 2</Typography>}
             />
           </Box>
           {areTeamsAvailable(team1Id, team2Id, gameStats) ? (
