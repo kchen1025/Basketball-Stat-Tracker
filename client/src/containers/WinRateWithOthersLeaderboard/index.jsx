@@ -38,8 +38,8 @@ const WinRateWithOthersLeaderboard = () => {
           <tr>
             <th>Player 1</th>
             <th>Player 2</th>
-            <th>Total Losses</th>
             <th>Total Wins</th>
+            <th>Total Losses</th>
             <th>Win Rate</th>
           </tr>
         </thead>
@@ -50,8 +50,8 @@ const WinRateWithOthersLeaderboard = () => {
               <td component="th" scope="row">
                 {row.player2_name}
               </td>
-              <td align="right">{row.total_losses}</td>
               <td align="right">{row.total_wins}</td>
+              <td align="right">{row.total_losses}</td>
               <td align="right">{row.win_rate}</td>
             </tr>
           ))}
