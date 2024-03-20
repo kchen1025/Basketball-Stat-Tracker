@@ -95,7 +95,6 @@ export default function InputAutocomplete({
           }}
           options={players}
           getOptionLabel={(option) => {
-            console.log("options", option);
             // e.g. value selected with enter, right from the input
             if (typeof option === "string") {
               return option;

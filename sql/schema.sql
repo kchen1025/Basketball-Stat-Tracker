@@ -39,7 +39,7 @@ CREATE UNIQUE INDEX idx_player_team ON player_team(player_id, team_id);
 
 create table if not exists game(
 	id serial PRIMARY KEY,
-    name UNIQUE text,
+  name text UNIQUE,
 	date date,
 	winner int null, -- loosen these null constraints to allow for insertion of game first
 	team1 int null,

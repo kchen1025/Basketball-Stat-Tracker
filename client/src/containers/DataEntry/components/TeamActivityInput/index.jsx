@@ -1,5 +1,5 @@
 import ButtonBlock from "@/components/ButtonBlock";
-import { getDate, getGameName, getGameId } from "../../utils";
+import { getDate, getGameId } from "../../utils";
 
 const TeamActivityInput = ({
   gameStats,
