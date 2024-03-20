@@ -53,6 +53,10 @@ const WinRateAgainstPlayer = () => {
         <Typography level="h2" mt={5}>
           Win Rate Against: {spotlightPlayer.name}
         </Typography>
+        <Typography level="body-xs" mb={2}>
+          These are the win rates of every player when they play against the
+          person in the input.
+        </Typography>
 
         <Table
           borderAxis="bothBetween"

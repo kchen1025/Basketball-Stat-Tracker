@@ -2,7 +2,7 @@ import { getPlayerWithPlayerLeaderboard } from "@/api/leaderboard";
 import { useLoaderData } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Table from "@mui/joy/Table";
-import { Box } from "@mui/joy";
+import { Box, Typography } from "@mui/joy";
 
 export async function loader({ params }) {
   const { results: leaderboard } = await getPlayerWithPlayerLeaderboard();
@@ -13,7 +13,20 @@ const WinRateWithOthersLeaderboard = () => {
   const { leaderboard } = useLoaderData();
 
   return (
-    <Box display="flex" justifyContent={"center"} margin={5}>
+    <Box
+      display="flex"
+      flexDirection={"column"}
+      alignItems={"center"}
+      margin={5}
+    >
+      <Typography level="h2" mt={2}>
+        Win Rate With Player Leaderboard
+      </Typography>
+      <Typography level="body-xs" mb={2}>
+        This is the win rate when players are paired up on the same team. Each
+        row is unique.
+      </Typography>
+
       <Table
         borderAxis="bothBetween"
         aria-label="basic table"
