@@ -10,9 +10,9 @@ if (process.env.NODE_ENV === "production") {
   //   rejectUnauthorized: true,
   //   ca: cert, // Use the decoded certificate here
   // };
-  ssl: {
-    rejectUnauthorized: false;
-  }
+  ssl = {
+    rejectUnauthorized: false,
+  };
 } else {
   console.log("USING DEVELOPMENT CERTS");
   ssl = {
