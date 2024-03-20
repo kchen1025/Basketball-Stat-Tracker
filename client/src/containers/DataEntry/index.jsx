@@ -1,131 +1,40 @@
-import {
-  Grid,
-  Box,
-  FormControl,
-  FormLabel,
-  Input,
-  Typography,
-  Button,
-  Divider,
-} from "@mui/joy";
-import { format } from "date-fns";
+import { Grid, Box, Button } from "@mui/joy";
 import { useLoaderData } from "react-router-dom";
 import { getGame, getGameMetaData, getGameLog } from "@/api/game";
-import { createTeam } from "@/api/team";
+import { createTeams } from "@/api/team";
 import { getAllPlayers } from "@/api/player";
 import { useState, useEffect } from "react";
 
-import ButtonBlock from "@/components/ButtonBlock";
-import InputAutocomplete from "@/components/InputAutocomplete";
+import TeamSelection from "./components/TeamSelection";
+import DataEntryHeader from "./components/DataEntryHeader";
+import GameActivityLog from "./components/GameActivityLog";
 import PlayerStatsTable from "@/components/PlayerStatsTable";
+import { BLANK_PLAYER } from "@/constants";
+import {
+  getGameId,
+  setBothTeamPlayers,
+  composeTeams,
+  getWinner,
+  isWinnerInTeams,
+  areTeamsAvailable,
+} from "./utils";
 
-const BLANK_PLAYER = {
-  assists: 0,
-  blocks: 0,
-  fga: 0,
-  fgm: 0,
-  points: 0,
-  rebounds: 0,
-  steals: 0,
-  tpa: 0,
-  tpm: 0,
-  turnovers: 0,
-  game_date: null,
-  game_name: null,
-  game_outcome: null,
-  player_id: null,
-  player_name: null,
-  team_id: null,
-  team_name: null,
-  winning_team_name: null,
-};
-
-const TEAM = {
-  one: "one",
-  two: "two",
-};
-
+// react router loader hooked up in App.jsx
 export async function loader({ params }) {
   const { results: gameData } = await getGame(params.gameId);
   const { results: gameResults } = await getGameMetaData(params.gameId);
   const { results: gameLog } = await getGameLog(params.gameId);
   const { results: allPlayers } = await getAllPlayers();
-  console.log(gameLog);
-  // if we get values, populate the page and allow editing of the game.
-  // if we don't get any values but we have a game, allow the editing of the game
 
   return { allPlayers, gameData, gameResults, gameLog };
 }
 
-const getDate = (gameData) => {
-  if (gameData && gameData.length) {
-    const date = gameData[0]?.date;
-    return date ? format(date, "yyyy-M-d") : null;
-  }
-  return null;
-};
-
-const getGameName = (gameData) => {
-  if (gameData && gameData.length) {
-    return gameData[0]?.name;
-  }
-  return null;
-};
-
-const getGameId = (gameData) => {
-  if (gameData && gameData.length) {
-    return gameData[0]?.id;
-  }
-  return null;
-};
-
-const setTeamPlayers = (
-  gameResults,
-  { team1, team2, setTeam1Players, setTeam2Players }
-) => {
-  setTeam1Players([
-    ...gameResults.reduce((acc, e) => {
-      if (e.team_id === team1) {
-        acc.push(e.player_id);
-      }
-      return acc;
-    }, []),
-  ]);
-  setTeam2Players([
-    ...gameResults.reduce((acc, e) => {
-      if (e.team_id === team2) {
-        acc.push(e.player_id);
-      }
-      return acc;
-    }, []),
-  ]);
-};
-
-const setGameStatsTeamId = (
-  teamPlayers,
-  teamId,
-  { gameStats, setGameStats }
-) => {
-  console.log(gameStats);
-  const newGameStats = gameStats.reduce((acc, e) => {
-    if (teamPlayers.includes(e.player_id)) {
-      acc.push({ ...e, team_id: teamId });
-    } else {
-      acc.push({ ...e });
-    }
-    return acc;
-  }, []);
-  console.log(newGameStats);
-  setGameStats(newGameStats);
-};
-
 const DataEntry = () => {
   const { allPlayers, gameData, gameResults, gameLog } = useLoaderData();
-  const [gameOriginalData, setGameOriginalData] = useState([]);
-  console.log(gameData);
+
   const [players, setPlayers] = useState([]);
   const [gameStats, setGameStats] = useState([]);
-  const [gameLogData, setGameLogData] = useState([]);
+  const [gameActivityLog, setGameActivityLog] = useState([]);
   const [team1Id, setTeam1Id] = useState(0);
   const [team2Id, setTeam2Id] = useState(0);
   const [winnerTeamId, setWinnerTeamId] = useState(-1);
@@ -135,8 +44,7 @@ const DataEntry = () => {
 
   useEffect(() => {
     setGameStats(gameResults);
-    setGameLogData(gameLog);
-    setGameOriginalData(gameData);
+    setGameActivityLog(gameLog);
     setPlayers(allPlayers);
 
     // if we don't have teams link to the actual game record, means this is a new game
@@ -145,27 +53,22 @@ const DataEntry = () => {
     //   return;
     // }
 
-    const teams = gameResults.reduce((acc, elem) => {
-      if (elem.team_id) {
-        acc.add(elem.team_id);
-      }
-      return acc;
-    }, new Set());
+    const teamsSet = composeTeams(gameResults);
 
-    if (teams.size == 2) {
-      const [team1, team2] = [...teams];
+    if (teamsSet.size == 2) {
+      const [team1, team2] = [...teamsSet];
 
       setTeam1Id(team1);
       setTeam2Id(team2);
 
       // now pull a winner
-      const winner = gameResults.find((e) => e.game_outcome === "Won");
-      if (winner.team_id && teams.has(winner.team_id)) {
+      const winner = getWinner(gameResults);
+      if (isWinnerInTeams(winner, teamsSet)) {
         setWinnerTeamId(winner.team_id);
       }
 
       // divide up the game stats by the inidividual teams
-      setTeamPlayers(gameResults, {
+      setBothTeamPlayers(gameResults, {
         team1,
         team2,
         setTeam1Players,
@@ -187,17 +90,40 @@ const DataEntry = () => {
       ]);
     };
 
-  const handleConfirmTeam = (teamPlayers, setTeamId, teamNum) => async () => {
-    const { results: team } = await createTeam(
-      teamPlayers,
-      gameData[0]?.id,
-      teamNum
-    );
-    const { id: teamId } = team;
-    setTeamId(teamId);
+  const setGameStatsTeamId = (team1Players, team2Players, team1Id, team2Id) => {
+    const newGameStats = gameStats.reduce((acc, e) => {
+      if (team1Players.includes(e.player_id)) {
+        acc.push({ ...e, team_id: team1Id });
+      } else if (team2Players.includes(e.player_id)) {
+        acc.push({ ...e, team_id: team2Id });
+      } else {
+        acc.push({ ...e });
+      }
+      return acc;
+    }, []);
+
+    setGameStats([...newGameStats]);
+  };
+
+  const handleConfirmTeams = async () => {
+    const { results: teams } = await createTeams({
+      team1PlayerIds: team1Players,
+      team2PlayerIds: team2Players,
+      gameId: getGameId(gameData),
+    });
+
+    if (teams.length != 2) {
+      throw new Error("something went wrong with team creation");
+    }
+
+    const team1 = teams[0];
+    const team2 = teams[1];
+
+    setTeam1Id(team1.id);
+    setTeam2Id(team2.id);
 
     // set the players on our stats to this team id
-    setGameStatsTeamId(teamPlayers, teamId, { gameStats, setGameStats });
+    setGameStatsTeamId(team1Players, team2Players, team1.id, team2.id);
 
     // refresh the game data
   };
@@ -205,105 +131,58 @@ const DataEntry = () => {
   return (
     <Grid container justifyContent="center" margin={5}>
       <Box justifyContent="center" margin={3}>
-        <Box display="flex" justifyContent="center" gap={10} marginBottom={2}>
-          <Typography level="h3">
-            Date:{" "}
-            <Typography level="body-lg">
-              {getDate(gameData) || "N/A"}
-            </Typography>
-          </Typography>
-          <Typography level="h3">
-            Game Name:{" "}
-            <Typography level="body-lg">
-              {getGameName(gameData) || "N/A"}
-            </Typography>
-          </Typography>
-        </Box>
-        <Box
-          display="flex"
-          justifyContent={"space-around"}
-          marginTop={5}
-          gap={2}
-        >
-          <Box display="flex" flexDirection={"column"} justifyContent="center">
-            <Typography level="h2">Team 1</Typography>
-            <Divider sx={{ marginTop: 1, marginBottom: 1 }} />
-            <InputAutocomplete
+        <DataEntryHeader gameData={gameData} />
+
+        <Box display="flex" flexDirection={"column"} alignItems={"center"}>
+          <Box
+            display="flex"
+            justifyContent={"space-around"}
+            marginTop={5}
+            gap={2}
+          >
+            <TeamSelection
               players={players}
+              teamPlayers={team1Players}
+              teamId={team1Id}
+              gameStats={gameStats}
+              setGameStats={setGameStats}
+              gameActivityLog={gameActivityLog}
+              setGameActivityLog={setGameActivityLog}
+              gameData={gameData}
               onExistingPlayerSelected={handleExistingPlayerAdded(
                 team1Players,
                 setTeam1Players,
                 team1Id
               )}
             />
-            {gameStats
-              .filter((e) => team1Players.includes(e.player_id))
-              .map((e, i) => {
-                return (
-                  <ButtonBlock
-                    key={`${e.player_name}-${i}`}
-                    name={e.player_name}
-                    playerId={e.player_id}
-                    teamId={team1Id}
-                    gameStats={gameStats}
-                    setGameStats={setGameStats}
-                    gameLogData={gameLogData}
-                    setGameLogData={setGameLogData}
-                    date={getDate(gameData)}
-                    gameId={getGameId(gameData)}
-                  />
-                );
-              })}
-            {!team1Id && gameStats.length ? (
-              <Button
-                color="success"
-                onClick={handleConfirmTeam(team1Players, setTeam1Id, TEAM.one)}
-              >
-                Confirm Team 1?
-              </Button>
-            ) : null}
-          </Box>
-          <Box display="flex" flexDirection={"column"} justifyContent="center">
-            <Typography level="h2">Team 2</Typography>
-            <Divider sx={{ marginTop: 1, marginBottom: 1 }} />
-            <InputAutocomplete
+            <TeamSelection
               players={players}
+              teamPlayers={team2Players}
+              teamId={team2Id}
+              gameStats={gameStats}
+              setGameStats={setGameStats}
+              gameActivityLog={gameActivityLog}
+              setGameActivityLog={setGameActivityLog}
+              gameData={gameData}
               onExistingPlayerSelected={handleExistingPlayerAdded(
                 team2Players,
                 setTeam2Players,
                 team2Id
               )}
             />
-            {gameStats
-              .filter((e) => team2Players.includes(e.player_id))
-              .map((e, i) => {
-                return (
-                  <ButtonBlock
-                    key={`${e.player_name}-${i}`}
-                    name={e.player_name}
-                    playerId={e.player_id}
-                    teamId={team2Id}
-                    gameStats={gameStats}
-                    setGameStats={setGameStats}
-                    gameLogData={gameLogData}
-                    setGameLogData={setGameLogData}
-                    date={getDate(gameData)}
-                    gameId={getGameId(gameData)}
-                  />
-                );
-              })}
-            {!team2Id && gameStats.length ? (
-              <Button
-                color="success"
-                onClick={handleConfirmTeam(team2Players, setTeam2Id, TEAM.two)}
-              >
-                Confirm Team 2?
-              </Button>
-            ) : null}
           </Box>
+          {areTeamsAvailable(team1Id, team2Id, gameStats) ? (
+            <Button
+              color="success"
+              sx={{ width: 600 }}
+              onClick={handleConfirmTeams}
+            >
+              Confirm Teams?
+            </Button>
+          ) : null}
         </Box>
 
-        <Box display="flex" marginTop={5}>
+        <Box marginTop={5}>
           <PlayerStatsTable
             team1Id={team1Id}
             team2Id={team2Id}
@@ -312,21 +191,13 @@ const DataEntry = () => {
           />
         </Box>
 
-        <Box display="flex" justifyContent="center">
-          <Box
-            display="flex"
-            flexDirection={"column"}
-            justifyContent="center"
-            marginTop={5}
-          >
-            {gameLogData.map((e, i) => {
-              return (
-                <Box key={`log-${i}`}>
-                  {e.player_name}: {e.act_type}
-                </Box>
-              );
-            })}
-          </Box>
+        <Box
+          display="flex"
+          flexDirection={"column"}
+          alignItems={"center"}
+          marginTop={5}
+        >
+          <GameActivityLog gameActivityLog={gameActivityLog} />
         </Box>
       </Box>
     </Grid>

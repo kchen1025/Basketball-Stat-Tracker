@@ -8,8 +8,8 @@ const ButtonBlock = ({
   teamId,
   gameStats,
   setGameStats,
-  gameLogData,
-  setGameLogData,
+  gameActivityLog,
+  setGameActivityLog,
   date,
   gameId,
 }) => {
@@ -59,19 +59,13 @@ const ButtonBlock = ({
     });
 
     setGameStats(updatedStats);
-    const newGameLogData = [...gameLogData];
-    newGameLogData.unshift({
+    const newGameActivityLog = [...gameActivityLog];
+    newGameActivityLog.unshift({
       player_id: playerId,
       player_name: name,
       act_type: statChange,
     });
-    console.log({
-      playerId,
-      actType: statChange,
-      date,
-      gameId,
-      teamId,
-    });
+
     await createActLog({
       playerId,
       actType: statChange,
@@ -79,7 +73,7 @@ const ButtonBlock = ({
       gameId,
       teamId,
     });
-    setGameLogData([...newGameLogData]);
+    setGameActivityLog([...newGameActivityLog]);
   };
 
   const disabled = !teamId || teamId === -1;

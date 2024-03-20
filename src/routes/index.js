@@ -17,6 +17,7 @@ router.get("/game-log/:gameId", miscController.getGameLog);
 
 router.post("/create-game", miscController.createGame);
 router.post("/team", teamController.createTeam);
+router.post("/teams", teamController.createTeams);
 router.post("/act", actController.createAct);
 
 module.exports = router;

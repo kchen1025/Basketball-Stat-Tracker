@@ -9,3 +9,24 @@ export const STATS = {
   block: "block",
   turnover: "turnover",
 };
+
+export const BLANK_PLAYER = {
+  assists: 0,
+  blocks: 0,
+  fga: 0,
+  fgm: 0,
+  points: 0,
+  rebounds: 0,
+  steals: 0,
+  tpa: 0,
+  tpm: 0,
+  turnovers: 0,
+  game_date: null,
+  game_name: null,
+  game_outcome: null,
+  player_id: null,
+  player_name: null,
+  team_id: null,
+  team_name: null,
+  winning_team_name: null,
+};

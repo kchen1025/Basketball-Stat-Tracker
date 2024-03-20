@@ -16,6 +16,7 @@ const filter = createFilterOptions();
 export default function InputAutocomplete({
   players,
   onExistingPlayerSelected,
+  disabled,
 }) {
   const [value, setValue] = React.useState(null);
   const [open, toggleOpen] = React.useState(false);
@@ -48,6 +49,7 @@ export default function InputAutocomplete({
       <FormControl>
         <FormLabel>Add a player</FormLabel>
         <Autocomplete
+          disabled={disabled}
           value={value}
           onChange={(event, newValue) => {
             if (typeof newValue === "string") {
