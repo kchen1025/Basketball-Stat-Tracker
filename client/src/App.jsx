@@ -11,6 +11,12 @@ import GameDateEntry, {
 import DataEntry, { loader as DataEntryLoader } from "./containers/DataEntry";
 import ErrorPage from "./components/ErrorPage";
 import { SnackbarProvider } from "./context/SnackbarContext";
+import WinRateWithOthersLeaderboard, {
+  loader as WinRateWithOthersLeaderboardLoader,
+} from "./containers/WinRateWithOthersLeaderboard";
+import WinRateAgainstPlayer, {
+  loader as WinRateAgainstPlayerLoader,
+} from "./containers/WinRateAgainstPlayer";
 
 const router = createBrowserRouter([
   {
@@ -36,6 +42,16 @@ const router = createBrowserRouter([
         action: GameDateEntryAction,
       },
       {
+        path: "/win-rate-with-others-leaderboard",
+        element: <WinRateWithOthersLeaderboard />,
+        loader: WinRateWithOthersLeaderboardLoader,
+      },
+      {
+        path: "/win-rate-against-player",
+        element: <WinRateAgainstPlayer />,
+        loader: WinRateAgainstPlayerLoader,
+      },
+      {
         path: "/data-entry/:gameId",
         element: <DataEntry />,
         loader: DataEntryLoader,
@@ -47,7 +63,7 @@ const router = createBrowserRouter([
 const App = () => {
   return (
     <SnackbarProvider>
-      <CssVarsProvider defaultMode="system">
+      <CssVarsProvider defaultMode="dark">
         <CssBaseline />
         <RouterProvider router={router} />
       </CssVarsProvider>

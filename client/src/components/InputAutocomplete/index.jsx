@@ -22,6 +22,7 @@ export default function InputAutocomplete({
   teamId,
   onExistingPlayerSelected,
   onNewPlayerAdded,
+  footerText,
 }) {
   const [value, setValue] = React.useState(null);
   const [open, toggleOpen] = React.useState(false);
@@ -114,10 +115,7 @@ export default function InputAutocomplete({
           )}
           sx={{ width: 300 }}
         />
-        <FormHelperText>
-          Pick from a list of existing players. Create a new one if doesn't
-          exist.
-        </FormHelperText>
+        <FormHelperText>{footerText}</FormHelperText>
       </FormControl>
 
       <Modal open={open} onClose={handleClose}>

@@ -22,11 +22,11 @@ const TeamSelection = ({
       <Divider sx={{ marginTop: 1, marginBottom: 1 }} />
       <InputAutocomplete
         players={players}
-        teamPlayers={teamPlayers}
         allSelectedPlayers={allSelectedPlayers}
         teamId={teamId}
         onExistingPlayerSelected={onExistingPlayerSelected}
         onNewPlayerAdded={onNewPlayerAdded}
+        footerText={`Pick from a list of existing players. Create a new one if doesn't exist.`}
       />
       <TeamActivityInput
         gameStats={gameStats}
