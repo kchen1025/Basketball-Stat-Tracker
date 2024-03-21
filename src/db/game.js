@@ -1,7 +1,7 @@
 const db = require("./index.js");
 
 async function getAllGames() {
-  const { rows } = await db.query("select name from game");
+  const { rows } = await db.query("select * from game");
   return rows;
 }
 
