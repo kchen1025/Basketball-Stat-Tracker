@@ -33,6 +33,14 @@ const API = {
     });
   },
 
+  delete(url, body, options = {}) {
+    return this.request(url, {
+      ...options,
+      method: "DELETE",
+      body: JSON.stringify(body),
+    });
+  },
+
   // Add other methods as needed (PUT, DELETE, etc.)
 };
 

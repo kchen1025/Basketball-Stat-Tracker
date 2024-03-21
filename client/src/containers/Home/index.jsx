@@ -6,6 +6,7 @@ import { Box, Button } from "@mui/joy";
 import { useNavigate } from "react-router-dom";
 import { API } from "@/utils";
 import { useSnackbar } from "@/context/SnackbarContext";
+import { deleteGame } from "@/api/game";
 
 const sortGames = (arr) => {
   arr.sort((a, b) => {
@@ -83,6 +84,24 @@ const Home = () => {
     navigate(`/data-entry/${currentGameId}`);
   };
 
+  const handleDeleteGame = async () => {
+    if (window.confirm("Are you sure you want to delete this game?")) {
+      try {
+        const currentGameId = selectedGame?.id;
+        await deleteGame(currentGameId);
+
+        await fetchDashboard();
+
+        triggerSnackbar({
+          message: `Successfully deleted game ${currentGameId}`,
+          color: "success",
+        });
+      } catch (err) {
+        triggerSnackbar({ message: "Unable to delete game" });
+      }
+    }
+  };
+
   const alwaysShowColumns = [
     { key: "player_name", label: "Name", rowSpan: 2, align: "left" },
     { key: "field_goals_made", label: "FGM", rowSpan: 2, align: "right" },
@@ -128,9 +147,14 @@ const Home = () => {
           })}
         </Select>
         {!isTotalGameStats(selectedGame) ? (
-          <Button onClick={handleEditGame} color="danger">
-            Edit Game
-          </Button>
+          <>
+            <Button onClick={handleEditGame} color="neutral">
+              Edit Game
+            </Button>
+            <Button onClick={handleDeleteGame} color="danger">
+              Delete Game
+            </Button>
+          </>
         ) : null}
         <Table
           borderAxis="bothBetween"

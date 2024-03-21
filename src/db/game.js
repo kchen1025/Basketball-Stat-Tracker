@@ -5,6 +5,24 @@ async function getAllGames() {
   return rows;
 }
 
+async function deleteGameDB(gameId) {
+  try {
+    await db.query("BEGIN");
+
+    await db.query(`delete from act where game_id=$1`, [gameId]);
+    const { rows } = await db.query(
+      `delete from game where id=$1 returning *`,
+      [gameId]
+    );
+
+    await db.query("COMMIT");
+    return rows;
+  } catch (e) {
+    await db.query("ROLLBACK");
+    throw e;
+  }
+}
+
 async function createGameDB(name, date) {
   const { rows } = await db.query(
     `
@@ -114,4 +132,5 @@ module.exports = {
   getGetMetaDataDB,
   getGameLogDB,
   getGameDB,
+  deleteGameDB,
 };
