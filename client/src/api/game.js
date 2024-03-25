@@ -15,3 +15,7 @@ export const getGameMetaData = async (gameId) => {
 export const getGameLog = async (gameId) => {
   return await API.get(`/api/game-log/${gameId}`);
 };
+
+export const getAllGames = async () => {
+  return await API.get("/api/games");
+};

@@ -6,9 +6,9 @@ import { Box, Button } from "@mui/joy";
 import { useNavigate } from "react-router-dom";
 import { API } from "@/utils";
 import { useSnackbar } from "@/context/SnackbarContext";
-import { deleteGame } from "@/api/game";
+import { deleteGame, getAllGames } from "@/api/game";
 
-const sortGames = (arr) => {
+const sortedGames = (arr) => {
   arr.sort((a, b) => {
     // Extract digits for primary and secondary comparison (assuming the format is always D<number>G<number>)
     const matchA = a.name.match(/D(\d+)G(\d+)/);
@@ -31,6 +31,11 @@ const sortGames = (arr) => {
   return arr;
 };
 
+const fetchSortedGames = async (setGames) => {
+  const { results } = await getAllGames();
+  setGames(sortedGames(results));
+};
+
 const isTotalGameStats = (selectedGame) =>
   Object.values(selectedGame).length === 0;
 
@@ -43,12 +48,7 @@ const Home = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    API.get("/api/games").then((data) => {
-      if (data?.results) {
-        const sortedGames = sortGames(data.results);
-        setGames(sortedGames);
-      }
-    });
+    fetchSortedGames(setGames);
   }, []);
 
   useEffect(() => {
@@ -88,9 +88,17 @@ const Home = () => {
     if (window.confirm("Are you sure you want to delete this game?")) {
       try {
         const currentGameId = selectedGame?.id;
-        await deleteGame(currentGameId);
+        const { results: deletedGames } = await deleteGame(currentGameId);
 
+        // fetch dashboard to reset data to homepage
         await fetchDashboard();
+
+        // reset selected game
+        setSelectedGame({});
+
+        // delete from games the id
+        const filteredGames = games.filter((e) => e.id !== deletedGames[0]);
+        setGames([...filteredGames]);
 
         triggerSnackbar({
           message: `Successfully deleted game ${currentGameId}`,
