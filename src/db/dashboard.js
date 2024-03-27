@@ -137,42 +137,44 @@ async function getPlayerMiscStats(gameId = null) {
 }
 
 async function getPlayerPoints(gameId = null) {
-  let query = `
+  let query = `    
     WITH ShotStats AS (
-        SELECT
-            a.player_id,
-            SUM(CASE WHEN a.act_type IN ('twoPtMake', 'threePtMake') THEN 1 ELSE 0 END) AS field_goals_made,
-            SUM(CASE WHEN a.act_type IN ('twoPtMiss', 'twoPtMake', 'threePtMiss', 'threePtMake') THEN 1 ELSE 0 END) AS field_goals_attempted,
-            SUM(CASE WHEN a.act_type = 'threePtMake' THEN 1 ELSE 0 END) AS three_points_made,
-            SUM(CASE WHEN a.act_type IN ('threePtMiss', 'threePtMake') THEN 1 ELSE 0 END) AS three_points_attempted
-        FROM
-            act a        
-        @@JOIN_CONDITION@@
-        GROUP BY
-            a.player_id
+      SELECT
+          a.player_id,
+          SUM(CASE WHEN a.act_type IN ('twoPtMake', 'threePtMake') THEN 1 ELSE 0 END) AS field_goals_made,
+          SUM(CASE WHEN a.act_type IN ('twoPtMiss', 'twoPtMake', 'threePtMiss', 'threePtMake') THEN 1 ELSE 0 END) AS field_goals_attempted,
+          SUM(CASE WHEN a.act_type = 'threePtMake' THEN 1 ELSE 0 END) AS three_points_made,
+          SUM(CASE WHEN a.act_type IN ('threePtMiss', 'threePtMake') THEN 1 ELSE 0 END) AS three_points_attempted            
+      FROM
+          act a      
+      @@JOIN_CONDITION@@          
+      GROUP BY
+          a.player_id
     ), CalculatedStats AS (
-        SELECT
-            ss.*,
-            ROUND((ss.field_goals_made::NUMERIC / NULLIF(ss.field_goals_attempted, 0)) * 100, 2) AS fg_percentage,
-            ROUND((ss.three_points_made::NUMERIC / NULLIF(ss.three_points_attempted, 0)) * 100, 2) AS three_pt_percentage
-        FROM
-            ShotStats ss
+      SELECT
+          ss.*,
+          ROUND((ss.field_goals_made::NUMERIC / NULLIF(ss.field_goals_attempted, 0)) * 100, 2) AS fg_percentage,
+          ROUND((ss.three_points_made::NUMERIC / NULLIF(ss.three_points_attempted, 0)) * 100, 2) AS three_pt_percentage,
+          ROUND(((ss.field_goals_made * 2 + ss.three_points_made) * 10000) / (2 * ss.field_goals_attempted)) / 100 AS true_shooting_percentage
+      FROM
+          ShotStats ss
     )
     SELECT
-        p.id AS player_id,
-        p.name AS player_name,
-        cs.field_goals_made,
-        cs.field_goals_attempted,
-        cs.fg_percentage || '%' AS fg_percentage,
-        cs.three_points_made,
-        cs.three_points_attempted,
-        cs.three_pt_percentage || '%' AS three_pt_percentage
+      p.id AS player_id,
+      p.name AS player_name,
+      cs.field_goals_made,
+      cs.field_goals_attempted,
+      cs.fg_percentage AS fg_percentage,
+      cs.three_points_made,
+      cs.three_points_attempted,
+      cs.three_pt_percentage AS three_pt_percentage,
+      cs.true_shooting_percentage AS true_shooting_percentage
     FROM
-        CalculatedStats cs
+      CalculatedStats cs
     JOIN
-        player p ON cs.player_id = p.id
+      player p ON cs.player_id = p.id
     ORDER BY
-        p.name;
+      p.name;
   `;
 
   const queryParams = [];
@@ -198,8 +200,60 @@ async function getPlayerPoints(gameId = null) {
   return rows;
 }
 
+async function getPlayerWins(gameId = null) {
+  let query = `
+    SELECT
+      p.id AS player_id,  
+      COUNT(DISTINCT g.id) AS games_played,
+      COUNT(DISTINCT CASE WHEN g.winner = pt.team_id THEN g.id END) AS wins,
+      ROUND((COUNT(DISTINCT CASE WHEN g.winner = pt.team_id THEN g.id END) * 100.0) / NULLIF(COUNT(DISTINCT g.id), 0), 2) AS win_percentage
+    FROM
+      player p
+    JOIN
+      player_team pt ON p.id = pt.player_id
+    JOIN
+      game g ON pt.team_id = g.team1 OR pt.team_id = g.team2
+    GROUP BY
+      p.id, p.name
+    ORDER BY
+      win_percentage DESC, games_played DESC;
+  `;
+
+  let queryPerGame = `
+    SELECT
+        p.id AS player_id,
+        1 AS games_played, -- Since we are looking at a specific game, games played is always 1
+        CASE
+            WHEN g.winner = pt.team_id THEN 1
+            ELSE 0
+        END AS wins
+    FROM
+        player p
+    JOIN
+        player_team pt ON p.id = pt.player_id
+    JOIN
+        game g ON (pt.team_id = g.team1 OR pt.team_id = g.team2) AND g.name like $1
+    GROUP BY
+        p.id, p.name, g.winner, pt.team_id
+    ORDER BY
+        wins DESC;
+  `;
+
+  const queryParams = [];
+
+  // if we have a game id, update the query so that we can search by it
+  if (gameId) {
+    query = queryPerGame;
+    queryParams.push(`%${gameId}%`);
+  }
+
+  const { rows } = await db.query(query, queryParams);
+  return rows;
+}
+
 module.exports = {
   getPlayerStatAverages,
   getPlayerMiscStats,
   getPlayerPoints,
+  getPlayerWins,
 };

@@ -1,8 +1,11 @@
-drop table act;
-drop table game;
-drop table player_team;
-drop table player;
-drop table team;
+-- drop table act;
+-- drop table game;
+-- drop table player_team;
+-- drop table player;
+-- drop table team;
+
+-- truncate player, player_team, team, game, act;
+
 
 
 create table if not exists player(

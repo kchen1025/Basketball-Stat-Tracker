@@ -2,6 +2,7 @@ const {
   getPlayerStatAverages,
   getPlayerPoints,
   getPlayerMiscStats,
+  getPlayerWins,
 } = require("../db/dashboard");
 
 // given an array and a key, create a map with the key as the key in the map and the rest as a value
@@ -24,6 +25,9 @@ async function getAllPlayerStats(req, res) {
     const playerMiscStats = await getPlayerMiscStats(gameId);
     const playerMiscStatsPivot = pivot(playerMiscStats);
 
+    const playerWins = await getPlayerWins(gameId);
+    const playerWinsPivot = pivot(playerWins);
+
     // join all the objects on player_id
     const result = playerStatAverages.map((e) => {
       const player_id = e.player_id;
@@ -31,6 +35,7 @@ async function getAllPlayerStats(req, res) {
         ...e,
         ...playerPointsPivot.get(player_id),
         ...playerMiscStatsPivot.get(player_id),
+        ...playerWinsPivot.get(player_id),
       };
     });
 
