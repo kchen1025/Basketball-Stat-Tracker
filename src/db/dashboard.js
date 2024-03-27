@@ -1,6 +1,6 @@
 const db = require("./index.js");
 
-async function getPlayerStatAverages(gameId = null) {
+async function getPlayerStatAverages({ gameId, startDate, endDate }) {
   let query = `
   WITH PlayerActions AS (
       SELECT
@@ -81,53 +81,16 @@ async function getPlayerStatAverages(gameId = null) {
       `
     );
     queryParams.push(`%${gameId}%`);
-  } else {
-    query = query.replace("@@JOIN_CONDITION@@", "");
-  }
-
-  const { rows } = await db.query(query, queryParams);
-  return rows;
-}
-
-async function getPlayerMiscStats(gameId = null) {
-  let query = `
-    SELECT
-        p.id AS player_id,
-        p.name AS player_name,
-        SUM(CASE WHEN a.act_type = 'rebound' THEN 1 ELSE 0 END) AS rebounds,
-        SUM(CASE WHEN a.act_type = 'assist' THEN 1 ELSE 0 END) AS assists,
-        SUM(CASE WHEN a.act_type = 'steal' THEN 1 ELSE 0 END) AS steals,
-        SUM(CASE WHEN a.act_type = 'block' THEN 1 ELSE 0 END) AS blocks,
-        SUM(CASE WHEN a.act_type = 'turnover' THEN 1 ELSE 0 END) AS turnovers,
-        SUM(CASE
-            WHEN a.act_type = 'twoPtMake' THEN 2
-            WHEN a.act_type = 'threePtMake' THEN 3
-            ELSE 0
-        END) AS points
-    FROM
-        player p
-    JOIN
-        act a ON p.id = a.player_id
-    @@JOIN_CONDITION@@
-    GROUP BY
-        p.id, p.name
-    ORDER BY
-        p.name;
-  `;
-  const queryParams = [];
-
-  // if we have a game id, update the query so that we can search by it
-  if (gameId) {
+  } else if (startDate && endDate) {
     query = query.replace(
       "@@JOIN_CONDITION@@",
-      `
-      JOIN 
-          game g ON a.game_id = g.id
-      WHERE
-          g.name LIKE $1
+      `JOIN
+            game g ON a.game_id = g.id
+        WHERE        
+            g.date BETWEEN $1 AND $2
       `
     );
-    queryParams.push(`%${gameId}%`);
+    queryParams.push(startDate, endDate);
   } else {
     query = query.replace("@@JOIN_CONDITION@@", "");
   }
@@ -136,7 +99,7 @@ async function getPlayerMiscStats(gameId = null) {
   return rows;
 }
 
-async function getPlayerPoints(gameId = null) {
+async function getPlayerPoints({ gameId, startDate, endDate }) {
   let query = `    
     WITH ShotStats AS (
       SELECT
@@ -192,6 +155,16 @@ async function getPlayerPoints(gameId = null) {
       `
     );
     queryParams.push(`%${gameId}%`);
+  } else if (startDate && endDate) {
+    query = query.replace(
+      "@@JOIN_CONDITION@@",
+      `JOIN
+            game g ON a.game_id = g.id
+        WHERE        
+            g.date BETWEEN $1 AND $2
+      `
+    );
+    queryParams.push(startDate, endDate);
   } else {
     query = query.replace("@@JOIN_CONDITION@@", "");
   }
@@ -200,7 +173,64 @@ async function getPlayerPoints(gameId = null) {
   return rows;
 }
 
-async function getPlayerWins(gameId = null) {
+async function getPlayerMiscStats({ gameId, startDate, endDate }) {
+  let query = `
+    SELECT
+        p.id AS player_id,
+        p.name AS player_name,
+        SUM(CASE WHEN a.act_type = 'rebound' THEN 1 ELSE 0 END) AS rebounds,
+        SUM(CASE WHEN a.act_type = 'assist' THEN 1 ELSE 0 END) AS assists,
+        SUM(CASE WHEN a.act_type = 'steal' THEN 1 ELSE 0 END) AS steals,
+        SUM(CASE WHEN a.act_type = 'block' THEN 1 ELSE 0 END) AS blocks,
+        SUM(CASE WHEN a.act_type = 'turnover' THEN 1 ELSE 0 END) AS turnovers,
+        SUM(CASE
+            WHEN a.act_type = 'twoPtMake' THEN 2
+            WHEN a.act_type = 'threePtMake' THEN 3
+            ELSE 0
+        END) AS points
+    FROM
+        player p
+    JOIN
+        act a ON p.id = a.player_id
+    @@JOIN_CONDITION@@
+    GROUP BY
+        p.id, p.name
+    ORDER BY
+        p.name;
+  `;
+  const queryParams = [];
+
+  // if we have a game id, update the query so that we can search by it
+  if (gameId) {
+    query = query.replace(
+      "@@JOIN_CONDITION@@",
+      `
+      JOIN 
+          game g ON a.game_id = g.id
+      WHERE
+          g.name LIKE $1
+      `
+    );
+    queryParams.push(`%${gameId}%`);
+  } else if (startDate && endDate) {
+    query = query.replace(
+      "@@JOIN_CONDITION@@",
+      `JOIN
+            game g ON a.game_id = g.id
+        WHERE        
+            g.date BETWEEN $1 AND $2
+      `
+    );
+    queryParams.push(startDate, endDate);
+  } else {
+    query = query.replace("@@JOIN_CONDITION@@", "");
+  }
+
+  const { rows } = await db.query(query, queryParams);
+  return rows;
+}
+
+async function getPlayerWins({ gameId, startDate, endDate }) {
   let query = `
     SELECT
       p.id AS player_id,  
@@ -213,6 +243,7 @@ async function getPlayerWins(gameId = null) {
       player_team pt ON p.id = pt.player_id
     JOIN
       game g ON pt.team_id = g.team1 OR pt.team_id = g.team2
+    @@JOIN_CONDITION@@
     GROUP BY
       p.id, p.name
     ORDER BY
@@ -245,6 +276,16 @@ async function getPlayerWins(gameId = null) {
   if (gameId) {
     query = queryPerGame;
     queryParams.push(`%${gameId}%`);
+  } else if (startDate && endDate) {
+    query = query.replace(
+      "@@JOIN_CONDITION@@",
+      `WHERE        
+            g.date BETWEEN $1 AND $2
+      `
+    );
+    queryParams.push(startDate, endDate);
+  } else {
+    query = query.replace("@@JOIN_CONDITION@@", "");
   }
 
   const { rows } = await db.query(query, queryParams);

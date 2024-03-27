@@ -9,16 +9,9 @@ import { useSnackbar } from "@/context/SnackbarContext";
 import { deleteGame, getAllGames } from "@/api/game";
 import { isTotalGameStats } from "./utils";
 import EnhancedTableHead from "./components/EnhancedTableHead";
+import DateRangePicker from "./components/DateRangePicker";
 
 function descendingComparator(raw_a, raw_b, orderBy) {
-  // if (b[orderBy] < a[orderBy]) {
-  //   return -1;
-  // }
-  // if (b[orderBy] > a[orderBy]) {
-  //   return 1;
-  // }
-  // return 0;
-
   const a = raw_a[orderBy];
   const b = raw_b[orderBy];
 
@@ -116,6 +109,21 @@ const Home = () => {
     }
   };
 
+  const fetchDashboardByDates = async (startDate, endDate) => {
+    const data = await API.get(
+      `/api/dashboard?startDate=${startDate}&endDate=${endDate}`
+    );
+
+    if (data?.results) {
+      setDashboardData(data.results);
+    }
+  };
+
+  const handleDateSubmit = async (dates) => {
+    const { startDate, endDate } = dates;
+    fetchDashboardByDates(startDate, endDate);
+  };
+
   const handleChange = (e, gameName) => {
     const currentGame = games.filter((e) => e.name === gameName);
     setSelectedGame({ ...currentGame[0] });
@@ -162,6 +170,12 @@ const Home = () => {
     { key: "player_name", label: "Name", rowSpan: 2, align: "left" },
     { key: "wins", label: "Wins", rowSpan: 2, align: "right" },
     { key: "games_played", label: "GP", rowSpan: 2, align: "right" },
+    {
+      key: "win_percentage",
+      label: "W%",
+      rowSpan: 2,
+      align: "right",
+    },
     { key: "field_goals_made", label: "FGM", rowSpan: 2, align: "right" },
     { key: "field_goals_attempted", label: "FGA", rowSpan: 2, align: "right" },
     { key: "fg_percentage", label: "FG%", rowSpan: 2, align: "right" },
@@ -174,12 +188,6 @@ const Home = () => {
     { key: "blocks", label: "BLK", rowSpan: 2, align: "right" },
     { key: "turnovers", label: "TO", rowSpan: 2, align: "right" },
     { key: "points", label: "PTS", rowSpan: 2, align: "right" },
-    {
-      key: "win_percentage",
-      label: "W%",
-      rowSpan: 2,
-      align: "right",
-    },
     {
       key: "true_shooting_percentage",
       label: "TS%",
@@ -207,8 +215,11 @@ const Home = () => {
 
   return (
     <>
+      {isTotalGameStats(selectedGame) ? (
+        <DateRangePicker onSubmit={handleDateSubmit} />
+      ) : null}
       <Box margin={5}>
-        <Select onChange={handleChange}>
+        <Select placeholder="Select a game" onChange={handleChange}>
           {games.map((row, i) => {
             return (
               <Option key={`games-${i}`} value={row.name}>

@@ -15,17 +15,26 @@ const pivot = (arr, key) => {
 
 async function getAllPlayerStats(req, res) {
   const gameId = req.query?.gameId;
+  const { startDate, endDate } = req.query;
 
   try {
-    const playerStatAverages = await getPlayerStatAverages(gameId);
+    const playerStatAverages = await getPlayerStatAverages({
+      gameId,
+      startDate,
+      endDate,
+    });
 
-    const playerPoints = await getPlayerPoints(gameId);
+    const playerPoints = await getPlayerPoints({ gameId, startDate, endDate });
     const playerPointsPivot = pivot(playerPoints);
 
-    const playerMiscStats = await getPlayerMiscStats(gameId);
+    const playerMiscStats = await getPlayerMiscStats({
+      gameId,
+      startDate,
+      endDate,
+    });
     const playerMiscStatsPivot = pivot(playerMiscStats);
 
-    const playerWins = await getPlayerWins(gameId);
+    const playerWins = await getPlayerWins({ gameId, startDate, endDate });
     const playerWinsPivot = pivot(playerWins);
 
     // join all the objects on player_id
