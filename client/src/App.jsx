@@ -1,6 +1,4 @@
 import "./App.css";
-import "react-date-range/dist/styles.css";
-import "react-date-range/dist/theme/default.css";
 import Home from "./containers/Home";
 import Sidebar from "./containers/Sidebar";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
