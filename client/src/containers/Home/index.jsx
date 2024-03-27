@@ -7,6 +7,48 @@ import { useNavigate } from "react-router-dom";
 import { API } from "@/utils";
 import { useSnackbar } from "@/context/SnackbarContext";
 import { deleteGame, getAllGames } from "@/api/game";
+import { isTotalGameStats } from "./utils";
+import EnhancedTableHead from "./components/EnhancedTableHead";
+
+function descendingComparator(raw_a, raw_b, orderBy) {
+  // if (b[orderBy] < a[orderBy]) {
+  //   return -1;
+  // }
+  // if (b[orderBy] > a[orderBy]) {
+  //   return 1;
+  // }
+  // return 0;
+
+  const a = raw_a[orderBy];
+  const b = raw_b[orderBy];
+
+  // Check for null and undefined
+  if (a == null && b == null) return 0; // Both are null or undefined, considered equal
+  if (a == null) return -1; // null/undefined values come before others
+  if (b == null) return 1;
+
+  // Check if both a and b are numeric
+  const isANumeric = !isNaN(parseFloat(a)) && isFinite(a);
+  const isBNumeric = !isNaN(parseFloat(b)) && isFinite(b);
+
+  // If both are numbers, compare as numbers
+  if (isANumeric && isBNumeric) {
+    return parseFloat(a) - parseFloat(b);
+  }
+
+  // If one is a number and the other is text, the number should come first
+  if (isANumeric) return -1;
+  if (isBNumeric) return 1;
+
+  // If both are text, compare as strings
+  return a.localeCompare(b);
+}
+
+function getComparator(order, orderBy) {
+  return order === "desc"
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
 
 const sortedGames = (arr) => {
   arr.sort((a, b) => {
@@ -36,10 +78,10 @@ const fetchSortedGames = async (setGames) => {
   setGames(sortedGames(results));
 };
 
-const isTotalGameStats = (selectedGame) =>
-  Object.values(selectedGame).length === 0;
-
 const Home = () => {
+  const [order, setOrder] = useState("desc");
+  const [orderBy, setOrderBy] = useState("player_name");
+
   const [dashboardData, setDashboardData] = useState([]);
   const [games, setGames] = useState([]);
   const [selectedGame, setSelectedGame] = useState({});
@@ -54,6 +96,12 @@ const Home = () => {
   useEffect(() => {
     fetchDashboard();
   }, []);
+
+  const handleRequestSort = (event, property) => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+  };
 
   const fetchDashboard = async (gameName = null) => {
     let data = null;
@@ -112,8 +160,11 @@ const Home = () => {
 
   const alwaysShowColumns = [
     { key: "player_name", label: "Name", rowSpan: 2, align: "left" },
+    { key: "wins", label: "Wins", rowSpan: 2, align: "right" },
+    { key: "games_played", label: "GP", rowSpan: 2, align: "right" },
     { key: "field_goals_made", label: "FGM", rowSpan: 2, align: "right" },
     { key: "field_goals_attempted", label: "FGA", rowSpan: 2, align: "right" },
+    { key: "fg_percentage", label: "FG%", rowSpan: 2, align: "right" },
     { key: "three_points_made", label: "3PM", rowSpan: 2, align: "right" },
     { key: "three_points_attempted", label: "3PA", rowSpan: 2, align: "right" },
     { key: "three_pt_percentage", label: "3P%", rowSpan: 2, align: "right" },
@@ -123,6 +174,18 @@ const Home = () => {
     { key: "blocks", label: "BLK", rowSpan: 2, align: "right" },
     { key: "turnovers", label: "TO", rowSpan: 2, align: "right" },
     { key: "points", label: "PTS", rowSpan: 2, align: "right" },
+    {
+      key: "win_percentage",
+      label: "W%",
+      rowSpan: 2,
+      align: "right",
+    },
+    {
+      key: "true_shooting_percentage",
+      label: "TS%",
+      rowSpan: 2,
+      align: "right",
+    },
   ];
 
   const conditionalColumns = [
@@ -169,36 +232,18 @@ const Home = () => {
           aria-label="basic table"
           stickyHeader
           stripe="odd"
+          hoverRow
         >
-          <thead>
-            <tr>
-              <th style={{ textAlign: "center" }} colSpan={12}>
-                TOTAL STATS
-              </th>
-              {isTotalGameStats(selectedGame) ? (
-                <>
-                  <th style={{ textAlign: "center" }} colSpan={10}>
-                    PER GAME AVERAGES
-                  </th>
-                </>
-              ) : null}
-            </tr>
-            <tr>
-              {columnsToShow.map((col) => (
-                <th
-                  key={col.key}
-                  style={{ textAlign: col.align }}
-                  colSpan={col.colSpan || 1}
-                  rowSpan={col.rowSpan || 1}
-                >
-                  {col.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
+          <EnhancedTableHead
+            order={order}
+            orderBy={orderBy}
+            onRequestSort={handleRequestSort}
+            columnsToShow={columnsToShow}
+            selectedGame={selectedGame}
+          />
 
           <tbody>
-            {dashboardData.map((row, i) => (
+            {dashboardData.sort(getComparator(order, orderBy)).map((row, i) => (
               <tr key={`${row.name}-${i}`}>
                 {columnsToShow.map((col) => (
                   <td key={col.key} align={col.align}>
