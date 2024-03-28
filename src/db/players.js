@@ -64,8 +64,46 @@ async function getCareerHighsDB() {
   return rows;
 }
 
+async function getPointsByPlayerDB(playerId) {
+  const { rows } = await db.query(
+    `WITH PlayerPointsPerGame AS (
+    SELECT
+        a.player_id,
+        a.game_id,
+        g.name as game_name,
+        g.date AS game_date,
+        SUM(CASE 
+            WHEN a.act_type = 'twoPtMake' THEN 2 
+            WHEN a.act_type = 'threePtMake' THEN 3 
+            ELSE 0 
+        END) AS points
+    FROM
+        act a
+    JOIN
+        game g ON a.game_id = g.id
+    WHERE
+        a.player_id = $1 
+    GROUP BY
+        a.player_id, a.game_id, g.date, g.name
+)
+SELECT
+    pg.player_id,
+    pg.game_id,
+    pg.game_name,
+    pg.game_date,    
+    pg.points
+FROM
+    PlayerPointsPerGame pg
+ORDER BY
+    pg.game_date, pg.game_id;`,
+    [playerId]
+  );
+  return rows;
+}
+
 module.exports = {
   getAllPlayers,
   createPlayerDB,
   getCareerHighsDB,
+  getPointsByPlayerDB,
 };

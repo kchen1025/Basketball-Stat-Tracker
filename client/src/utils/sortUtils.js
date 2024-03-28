@@ -29,3 +29,22 @@ export function getComparator(order, orderBy) {
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
+
+export const sortDayGameComparator = (a, b) => {
+  // Extract digits for primary and secondary comparison (assuming the format is always D<number>G<number>)
+  const matchA = a.name.match(/D(\d+)G(\d+)/);
+  const matchB = b.name.match(/D(\d+)G(\d+)/);
+
+  // Convert matched strings to integers
+  const primaryA = parseInt(matchA[1], 10);
+  const primaryB = parseInt(matchB[1], 10);
+  const secondaryA = parseInt(matchA[2], 10);
+  const secondaryB = parseInt(matchB[2], 10);
+
+  // First compare the primary part (D<number>)
+  if (primaryA < primaryB) return -1;
+  if (primaryA > primaryB) return 1;
+
+  // If primary parts are equal, compare the secondary part (G<number>)
+  return secondaryA - secondaryB;
+};

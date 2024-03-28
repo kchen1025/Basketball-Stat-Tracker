@@ -118,7 +118,7 @@ async function getPlayerPoints({ gameId, startDate, endDate }) {
           ss.*,
           ROUND((ss.field_goals_made::NUMERIC / NULLIF(ss.field_goals_attempted, 0)) * 100, 2) AS fg_percentage,
           ROUND((ss.three_points_made::NUMERIC / NULLIF(ss.three_points_attempted, 0)) * 100, 2) AS three_pt_percentage,
-          ROUND(((ss.field_goals_made * 2 + ss.three_points_made) * 10000) / (2 * ss.field_goals_attempted)) / 100 AS true_shooting_percentage
+          ROUND(((ss.field_goals_made * 2 + ss.three_points_made) * 10000) / NULLIF((2 * ss.field_goals_attempted), 0)) / 100 AS true_shooting_percentage
       FROM
           ShotStats ss
     )
@@ -240,9 +240,8 @@ async function getPlayerWins({ gameId, startDate, endDate }) {
     FROM
       player p
     JOIN
-      player_team pt ON p.id = pt.player_id
-    JOIN
-      game g ON pt.team_id = g.team1 OR pt.team_id = g.team2
+      player_team pt ON p.id = pt.player_id    
+    @@NAME_JOIN_CONDITION@@
     @@JOIN_CONDITION@@
     GROUP BY
       p.id, p.name
@@ -250,31 +249,15 @@ async function getPlayerWins({ gameId, startDate, endDate }) {
       win_percentage DESC, games_played DESC;
   `;
 
-  let queryPerGame = `
-    SELECT
-        p.id AS player_id,
-        1 AS games_played, -- Since we are looking at a specific game, games played is always 1
-        CASE
-            WHEN g.winner = pt.team_id THEN 1
-            ELSE 0
-        END AS wins
-    FROM
-        player p
-    JOIN
-        player_team pt ON p.id = pt.player_id
-    JOIN
-        game g ON (pt.team_id = g.team1 OR pt.team_id = g.team2) AND g.name like $1
-    GROUP BY
-        p.id, p.name, g.winner, pt.team_id
-    ORDER BY
-        wins DESC;
-  `;
-
   const queryParams = [];
 
   // if we have a game id, update the query so that we can search by it
   if (gameId) {
-    query = queryPerGame;
+    query = query.replace("@@JOIN_CONDITION@@", "");
+    query = query.replace(
+      "@@NAME_JOIN_CONDITION@@",
+      `JOIN game g ON (pt.team_id = g.team1 OR pt.team_id = g.team2) AND g.name like $1`
+    );
     queryParams.push(`%${gameId}%`);
   } else if (startDate && endDate) {
     query = query.replace(
@@ -283,9 +266,17 @@ async function getPlayerWins({ gameId, startDate, endDate }) {
             g.date BETWEEN $1 AND $2
       `
     );
+    query = query.replace(
+      "@@NAME_JOIN_CONDITION@@",
+      `JOIN game g ON pt.team_id = g.team1 OR pt.team_id = g.team2`
+    );
     queryParams.push(startDate, endDate);
   } else {
     query = query.replace("@@JOIN_CONDITION@@", "");
+    query = query.replace(
+      "@@NAME_JOIN_CONDITION@@",
+      `JOIN game g ON pt.team_id = g.team1 OR pt.team_id = g.team2`
+    );
   }
 
   const { rows } = await db.query(query, queryParams);

@@ -7,31 +7,22 @@ import { useNavigate } from "react-router-dom";
 import { API } from "@/utils";
 import { useSnackbar } from "@/context/SnackbarContext";
 import { deleteGame, getAllGames } from "@/api/game";
-import { isTotalGameStats } from "./utils";
+import { getDaysFromGames, isTotalGameStats } from "./utils";
 import EnhancedTableHead from "./components/EnhancedTableHead";
 import DateRangePicker from "./components/DateRangePicker";
-import { getComparator } from "@/utils/sortUtils";
+import { getComparator, sortDayGameComparator } from "@/utils/sortUtils";
+
+const isDaySelected = (selectedDay) => {
+  return selectedDay !== "";
+};
+
+const isGameSelected = (selectedGame) => {
+  // check if selected game is not an empty object
+  return Object.keys(selectedGame)?.length !== 0;
+};
 
 const sortedGames = (arr) => {
-  arr.sort((a, b) => {
-    // Extract digits for primary and secondary comparison (assuming the format is always D<number>G<number>)
-    const matchA = a.name.match(/D(\d+)G(\d+)/);
-    const matchB = b.name.match(/D(\d+)G(\d+)/);
-
-    // Convert matched strings to integers
-    const primaryA = parseInt(matchA[1], 10);
-    const primaryB = parseInt(matchB[1], 10);
-    const secondaryA = parseInt(matchA[2], 10);
-    const secondaryB = parseInt(matchB[2], 10);
-
-    // First compare the primary part (D<number>)
-    if (primaryA < primaryB) return -1;
-    if (primaryA > primaryB) return 1;
-
-    // If primary parts are equal, compare the secondary part (G<number>)
-    return secondaryA - secondaryB;
-  });
-
+  arr.sort(sortDayGameComparator);
   return arr;
 };
 
@@ -47,6 +38,7 @@ const Home = () => {
   const [dashboardData, setDashboardData] = useState([]);
   const [games, setGames] = useState([]);
   const [selectedGame, setSelectedGame] = useState({});
+  const [selectedDay, setSelectedDay] = useState("");
   const { triggerSnackbar } = useSnackbar();
 
   const navigate = useNavigate();
@@ -97,6 +89,12 @@ const Home = () => {
     const currentGame = games.filter((e) => e.name === gameName);
     setSelectedGame({ ...currentGame[0] });
     fetchDashboard(gameName);
+  };
+
+  const handleDayChange = (e, dayName) => {
+    setSelectedDay(dayName);
+    // since we are just doing a database LIKE search, this works equally well
+    fetchDashboard(dayName);
   };
 
   const handleEditGame = () => {
@@ -182,6 +180,8 @@ const Home = () => {
     ? [...alwaysShowColumns, ...conditionalColumns]
     : alwaysShowColumns;
 
+  const gameDays = getDaysFromGames(games);
+
   return (
     <>
       <Sheet sx={{ overflowX: "auto" }}>
@@ -189,15 +189,28 @@ const Home = () => {
           {isTotalGameStats(selectedGame) ? (
             <DateRangePicker onSubmit={handleDateSubmit} />
           ) : null}
-          <Select placeholder="Select a game" onChange={handleChange}>
-            {games.map((row, i) => {
-              return (
-                <Option key={`games-${i}`} value={row.name}>
-                  {row.name}
-                </Option>
-              );
-            })}
-          </Select>
+          {isDaySelected(selectedDay) ? null : (
+            <Select placeholder="Select a game" onChange={handleChange}>
+              {games.map((row, i) => {
+                return (
+                  <Option key={`games-${i}`} value={row.name}>
+                    {row.name}
+                  </Option>
+                );
+              })}
+            </Select>
+          )}
+          {isGameSelected(selectedGame) ? null : (
+            <Select placeholder="Select a day" onChange={handleDayChange}>
+              {gameDays.map((day, i) => {
+                return (
+                  <Option key={`days-${i}`} value={day}>
+                    {day}
+                  </Option>
+                );
+              })}
+            </Select>
+          )}
           {!isTotalGameStats(selectedGame) ? (
             <>
               <Button onClick={handleEditGame} color="neutral">

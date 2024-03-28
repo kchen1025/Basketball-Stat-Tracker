@@ -11,3 +11,7 @@ export const createPlayer = async ({ playerName: player_name }) => {
 export const getCareerHighs = async () => {
   return await API.get(`/api/players/career-highs`);
 };
+
+export const getPointsByPlayer = async (playerId) => {
+  return await API.get(`/api/player/${playerId}/points`);
+};

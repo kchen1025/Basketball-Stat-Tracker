@@ -1,6 +1,5 @@
 import { getCareerHighs } from "@/api/player";
 import { useLoaderData } from "react-router-dom";
-import { useState, useEffect } from "react";
 
 import { format } from "date-fns";
 

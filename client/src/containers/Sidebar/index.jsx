@@ -96,6 +96,15 @@ export default function Sidebar() {
             <ListItem>
               <ListItemButton
                 onClick={() => {
+                  navigate("player-dashboard");
+                }}
+              >
+                Player Dashboard
+              </ListItemButton>
+            </ListItem>
+            <ListItem>
+              <ListItemButton
+                onClick={() => {
                   navigate("career-highs");
                 }}
               >

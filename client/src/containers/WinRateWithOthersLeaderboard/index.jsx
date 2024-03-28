@@ -27,13 +27,13 @@ const WinRateWithOthersLeaderboard = () => {
           rowSpan: 2,
           align: "left",
         },
-        { key: "total_losses", label: "Losses", rowSpan: 2, align: "right" },
         {
           key: "total_wins",
           label: "Wins",
           rowSpan: 2,
           align: "right",
         },
+        { key: "total_losses", label: "Losses", rowSpan: 2, align: "right" },
         {
           key: "win_rate",
           label: "Win Rate",

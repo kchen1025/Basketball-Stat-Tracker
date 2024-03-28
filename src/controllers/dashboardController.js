@@ -5,13 +5,7 @@ const {
   getPlayerWins,
 } = require("../db/dashboard");
 
-// given an array and a key, create a map with the key as the key in the map and the rest as a value
-const pivot = (arr, key) => {
-  return arr.reduce((acc, elem) => {
-    acc.set(elem.player_id, elem);
-    return acc;
-  }, new Map());
-};
+const { pivot } = require("../utils");
 
 async function getAllPlayerStats(req, res) {
   const gameId = req.query?.gameId;
