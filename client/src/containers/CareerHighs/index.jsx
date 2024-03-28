@@ -41,6 +41,7 @@ const CareerHighs = () => {
         },
       ]}
       data={transformedCareerHighs}
+      maxWidth={800}
     />
   );
 };

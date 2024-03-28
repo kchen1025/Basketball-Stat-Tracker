@@ -56,6 +56,7 @@ const DataTable = ({
   data,
   defaultSortKey,
   defaultSortDirection,
+  maxWidth = null,
 }) => {
   const [order, setOrder] = useState(defaultSortDirection || "desc");
   const [orderBy, setOrderBy] = useState(defaultSortKey || "id");
@@ -71,7 +72,7 @@ const DataTable = ({
       display="flex"
       flexDirection={"column"}
       alignItems={"center"}
-      margin={5}
+      margin={3}
     >
       <Typography level="h2" mt={2}>
         {headerText}
@@ -86,6 +87,7 @@ const DataTable = ({
         stickyHeader
         stripe="odd"
         hoverRow
+        sx={maxWidth ? { maxWidth } : {}}
       >
         <EnhancedTableHead
           order={order}

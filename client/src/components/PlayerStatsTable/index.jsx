@@ -5,8 +5,6 @@ const slateblue = "#5E81AC";
 const lightred = "#BF616A";
 
 const PlayerStatsTable = ({ team1Id, team2Id, winnerTeamId, gameStats }) => {
-  console.log("team1id", team1Id, "team2id", team2Id);
-  console.log("gameSTats", gameStats);
   return (
     <Table borderAxis="bothBetween" aria-label="basic table">
       <thead>

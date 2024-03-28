@@ -39,7 +39,7 @@ async function getWinRateWithPlayersLeaderboardDB() {
         p2.name AS player2_name,
         WRC.total_wins,
         WRC.total_losses,
-        WRC.win_rate_percentage || '%' AS win_rate
+        WRC.win_rate_percentage AS win_rate
     FROM
         WinRateCalc WRC
     JOIN
@@ -95,7 +95,7 @@ async function getWinRateAgainstPlayerDB(playerId) {
         p.name AS player_name,
         wr.wins,
         wr.losses,
-        wr.win_percentage || '%' AS win_rate
+        wr.win_percentage AS win_rate
     FROM
         WinRate wr
     JOIN

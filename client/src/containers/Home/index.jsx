@@ -185,10 +185,10 @@ const Home = () => {
   return (
     <>
       <Sheet sx={{ overflowX: "auto" }}>
-        {isTotalGameStats(selectedGame) ? (
-          <DateRangePicker onSubmit={handleDateSubmit} />
-        ) : null}
-        <Box margin={5}>
+        <Box margin={3}>
+          {isTotalGameStats(selectedGame) ? (
+            <DateRangePicker onSubmit={handleDateSubmit} />
+          ) : null}
           <Select placeholder="Select a game" onChange={handleChange}>
             {games.map((row, i) => {
               return (
@@ -214,7 +214,7 @@ const Home = () => {
             stickyHeader
             stripe="odd"
             hoverRow
-            sx={{ width: 1600 }}
+            sx={{ minWidth: 1600 }}
           >
             <EnhancedTableHead
               order={order}

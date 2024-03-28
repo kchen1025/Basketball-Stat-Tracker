@@ -1,11 +1,11 @@
 import { getWinRateAgainstPlayer } from "@/api/leaderboard";
 import { useLoaderData } from "react-router-dom";
 import { useState, useEffect } from "react";
-import Table from "@mui/joy/Table";
-import { Box, Typography } from "@mui/joy";
+import { Box } from "@mui/joy";
 import InputAutocomplete from "@/components/InputAutocomplete";
 import { getAllPlayers } from "@/api/player";
 import { useSnackbar } from "@/context/SnackbarContext";
+import DataTable from "@/components/DataTable";
 
 export async function loader({ params }) {
   const { results: allPlayers } = await getAllPlayers();
@@ -20,7 +20,7 @@ const WinRateAgainstPlayer = () => {
 
   const [spotlightPlayer, setSpotlightPlayer] = useState({});
   const [leaderboard, setLeaderboard] = useState([]);
-  console.log(spotlightPlayer);
+
   useEffect(() => {
     const { id: playerId } = spotlightPlayer;
 
@@ -42,7 +42,6 @@ const WinRateAgainstPlayer = () => {
           allSelectedPlayers={[]}
           teamId={0}
           onExistingPlayerSelected={(player) => {
-            console.log("SETPLAYER", player);
             if (player) setSpotlightPlayer(player);
           }}
           onNewPlayerAdded={(player) => {
@@ -50,41 +49,35 @@ const WinRateAgainstPlayer = () => {
           }}
         />
 
-        <Typography level="h2" mt={5}>
-          Win Rate Against: {spotlightPlayer.name}
-        </Typography>
-        <Typography level="body-xs" mb={2}>
-          These are the win rates of every player when they play against the
-          person in the input.
-        </Typography>
-
-        <Table
-          borderAxis="bothBetween"
-          aria-label="basic table"
-          stickyHeader
-          stripe="odd"
-        >
-          <thead>
-            <tr>
-              <th>Player</th>
-              <th>Wins</th>
-              <th>Losses</th>
-              <th>Win Rate</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leaderboard.map((row, i) => (
-              <tr key={`${row.name}-${i}`}>
-                <td>{row.player_name}</td>
-                <td component="th" scope="row">
-                  {row.wins}
-                </td>
-                <td align="right">{row.losses}</td>
-                <td align="right">{row.win_rate}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+        <DataTable
+          headerText={`Win Rate Against: ${spotlightPlayer.name}`}
+          subHeaderText={`These are the win rates of every player when they play against the person in the input.`}
+          defaultSortKey={"win_rate"}
+          defaultSortDirection={"asc"}
+          headerColumns={[
+            {
+              key: "player_name",
+              label: "Player",
+              rowSpan: 2,
+              align: "left",
+            },
+            {
+              key: "wins",
+              label: "Wins",
+              rowSpan: 2,
+              align: "right",
+            },
+            { key: "losses", label: "Losses", rowSpan: 2, align: "right" },
+            {
+              key: "win_rate",
+              label: "Win Rate %",
+              rowSpan: 2,
+              align: "right",
+            },
+          ]}
+          data={leaderboard}
+          maxWidth={800}
+        />
       </Box>
     </Box>
   );

@@ -16,7 +16,7 @@ const DateRangePicker = ({ onSubmit }) => {
   const [error, setError] = useState("");
 
   return (
-    <Grid margin={5}>
+    <Grid mt={2} mb={2}>
       <Grid display="flex" justifyContent="flexStart">
         <form
           onSubmit={(event) => {
