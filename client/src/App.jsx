@@ -17,6 +17,9 @@ import WinRateWithOthersLeaderboard, {
 import WinRateAgainstPlayer, {
   loader as WinRateAgainstPlayerLoader,
 } from "./containers/WinRateAgainstPlayer";
+import CareerHighs, {
+  loader as CareerHighsLoader,
+} from "./containers/CareerHighs";
 
 const router = createBrowserRouter([
   {
@@ -55,6 +58,11 @@ const router = createBrowserRouter([
         path: "/data-entry/:gameId",
         element: <DataEntry />,
         loader: DataEntryLoader,
+      },
+      {
+        path: "/career-highs",
+        element: <CareerHighs />,
+        loader: CareerHighsLoader,
       },
     ],
   },

@@ -1,4 +1,8 @@
-const { getAllPlayers, createPlayerDB } = require("../db/players");
+const {
+  getAllPlayers,
+  createPlayerDB,
+  getCareerHighsDB,
+} = require("../db/players");
 
 async function getPlayers(req, res) {
   try {
@@ -25,7 +29,18 @@ async function createPlayer(req, res) {
   }
 }
 
+async function getCareerHighs(req, res) {
+  try {
+    const results = await getCareerHighsDB();
+    res.send({ results });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error " + err);
+  }
+}
+
 module.exports = {
   getPlayers,
   createPlayer,
+  getCareerHighs,
 };

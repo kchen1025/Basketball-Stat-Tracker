@@ -9,6 +9,7 @@ const gameController = require("../controllers/gameController");
 const router = express.Router();
 
 router.get("/players", playersController.getPlayers);
+router.get("/players/career-highs", playersController.getCareerHighs);
 router.post("/player", playersController.createPlayer);
 
 router.get("/dashboard", dashboardController.getAllPlayerStats);
