@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Table from "@mui/joy/Table";
 import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
-import { Box, Button } from "@mui/joy";
+import { Box, Button, Sheet } from "@mui/joy";
 import { useNavigate } from "react-router-dom";
 import { API } from "@/utils";
 import { useSnackbar } from "@/context/SnackbarContext";
@@ -184,57 +184,62 @@ const Home = () => {
 
   return (
     <>
-      {isTotalGameStats(selectedGame) ? (
-        <DateRangePicker onSubmit={handleDateSubmit} />
-      ) : null}
-      <Box margin={5}>
-        <Select placeholder="Select a game" onChange={handleChange}>
-          {games.map((row, i) => {
-            return (
-              <Option key={`games-${i}`} value={row.name}>
-                {row.name}
-              </Option>
-            );
-          })}
-        </Select>
-        {!isTotalGameStats(selectedGame) ? (
-          <>
-            <Button onClick={handleEditGame} color="neutral">
-              Edit Game
-            </Button>
-            <Button onClick={handleDeleteGame} color="danger">
-              Delete Game
-            </Button>
-          </>
+      <Sheet sx={{ overflowX: "auto" }}>
+        {isTotalGameStats(selectedGame) ? (
+          <DateRangePicker onSubmit={handleDateSubmit} />
         ) : null}
-        <Table
-          borderAxis="bothBetween"
-          aria-label="basic table"
-          stickyHeader
-          stripe="odd"
-          hoverRow
-        >
-          <EnhancedTableHead
-            order={order}
-            orderBy={orderBy}
-            onRequestSort={handleRequestSort}
-            columnsToShow={columnsToShow}
-            selectedGame={selectedGame}
-          />
+        <Box margin={5}>
+          <Select placeholder="Select a game" onChange={handleChange}>
+            {games.map((row, i) => {
+              return (
+                <Option key={`games-${i}`} value={row.name}>
+                  {row.name}
+                </Option>
+              );
+            })}
+          </Select>
+          {!isTotalGameStats(selectedGame) ? (
+            <>
+              <Button onClick={handleEditGame} color="neutral">
+                Edit Game
+              </Button>
+              <Button onClick={handleDeleteGame} color="danger">
+                Delete Game
+              </Button>
+            </>
+          ) : null}
+          <Table
+            borderAxis="bothBetween"
+            aria-label="basic table"
+            stickyHeader
+            stripe="odd"
+            hoverRow
+            sx={{ width: 1600 }}
+          >
+            <EnhancedTableHead
+              order={order}
+              orderBy={orderBy}
+              onRequestSort={handleRequestSort}
+              columnsToShow={columnsToShow}
+              selectedGame={selectedGame}
+            />
 
-          <tbody>
-            {dashboardData.sort(getComparator(order, orderBy)).map((row, i) => (
-              <tr key={`${row.name}-${i}`}>
-                {columnsToShow.map((col) => (
-                  <td key={col.key} align={col.align}>
-                    {row[col.key]}
-                  </td>
+            <tbody>
+              {dashboardData
+                .sort(getComparator(order, orderBy))
+                .map((row, i) => (
+                  <tr key={`${row.name}-${i}`}>
+                    {columnsToShow.map((col) => (
+                      <td key={col.key} align={col.align}>
+                        {row[col.key]}
+                      </td>
+                    ))}
+                  </tr>
                 ))}
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      </Box>
+            </tbody>
+          </Table>
+        </Box>
+      </Sheet>
     </>
   );
 };
