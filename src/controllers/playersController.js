@@ -2,11 +2,10 @@ const {
   getAllPlayers,
   createPlayerDB,
   getCareerHighsDB,
-  getPointsByPlayerDB,
+  getChartStatsByPlayerDB,
 } = require("../db/players");
 
-const { getGameAndDay } = require("../utils");
-const { pivotByDay } = require("../utils/pivotUtils");
+const { pivotByDay, getKeysAndDataFromMap } = require("../utils/pivotUtils");
 
 async function getPlayers(req, res) {
   try {
@@ -43,32 +42,12 @@ async function getCareerHighs(req, res) {
   }
 }
 
-const getKeysAndDataFromMap = (daysMap) => {
-  const data = [];
-  const gameKeys = new Set();
-
-  daysMap.forEach((games, day, map) => {
-    const curr = {};
-    curr["day"] = day;
-    for (const game of games) {
-      const { day, game: gameName } = getGameAndDay(game.game_name);
-
-      const gameKey = `G${gameName}`;
-      curr[gameKey] = game.points;
-
-      gameKeys.add(gameKey);
-    }
-    data.push({ ...curr });
-  });
-
-  const keys = Array.from(gameKeys).sort();
-
-  return { keys, data };
-};
-
-async function getPointsByPlayer(req, res) {
+async function getChartStatsByPlayer(req, res) {
   try {
-    const pointHistory = await getPointsByPlayerDB(req.params.playerId);
+    const pointHistory = await getChartStatsByPlayerDB(
+      req.params.playerId,
+      req.query.actionType
+    );
 
     // calculate the number of days first
     const daysMap = pivotByDay(pointHistory);
@@ -85,5 +64,5 @@ module.exports = {
   getPlayers,
   createPlayer,
   getCareerHighs,
-  getPointsByPlayer,
+  getChartStatsByPlayer,
 };

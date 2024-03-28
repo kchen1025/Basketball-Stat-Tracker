@@ -11,7 +11,7 @@ const router = express.Router();
 router.get("/players", playersController.getPlayers);
 router.get("/players/career-highs", playersController.getCareerHighs);
 router.post("/player", playersController.createPlayer);
-router.get("/player/:playerId/points", playersController.getPointsByPlayer);
+router.get("/player/:playerId/stats", playersController.getChartStatsByPlayer);
 
 router.get("/dashboard", dashboardController.getAllPlayerStats);
 router.get("/emoji", miscController.getEmoji);

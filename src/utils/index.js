@@ -1,8 +1,9 @@
 const { getGameAndDay } = require("./dayUtils");
-const { pivot, pivotByDay } = require("./pivotUtils");
+const { pivot, pivotByDay, getKeysAndDataFromMap } = require("./pivotUtils");
 
 module.exports = {
   getGameAndDay,
   pivot,
   pivotByDay,
+  getKeysAndDataFromMap,
 };

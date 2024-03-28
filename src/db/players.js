@@ -1,4 +1,5 @@
 const db = require("./index.js");
+const { ACTION_TYPES } = require("../constants");
 
 async function getAllPlayers() {
   const { rows } = await db.query("SELECT * FROM player");
@@ -64,40 +65,103 @@ async function getCareerHighsDB() {
   return rows;
 }
 
-async function getPointsByPlayerDB(playerId) {
-  const { rows } = await db.query(
-    `WITH PlayerPointsPerGame AS (
-    SELECT
-        a.player_id,
-        a.game_id,
-        g.name as game_name,
-        g.date AS game_date,
-        SUM(CASE 
-            WHEN a.act_type = 'twoPtMake' THEN 2 
-            WHEN a.act_type = 'threePtMake' THEN 3 
-            ELSE 0 
-        END) AS points
-    FROM
-        act a
-    JOIN
-        game g ON a.game_id = g.id
-    WHERE
-        a.player_id = $1 
-    GROUP BY
-        a.player_id, a.game_id, g.date, g.name
-)
-SELECT
-    pg.player_id,
-    pg.game_id,
-    pg.game_name,
-    pg.game_date,    
-    pg.points
-FROM
-    PlayerPointsPerGame pg
-ORDER BY
-    pg.game_date, pg.game_id;`,
-    [playerId]
-  );
+async function getChartStatsByPlayerDB(playerId, actionType = null) {
+  let query = `
+  WITH PlayerPointsPerGame AS (
+      SELECT
+          a.player_id,
+          a.game_id,
+          g.name as game_name,
+          g.date AS game_date,
+          @@STAT_CONDITION@@
+      FROM
+          act a
+      JOIN
+          game g ON a.game_id = g.id
+      WHERE
+          a.player_id = $1 
+      GROUP BY
+          a.player_id, a.game_id, g.date, g.name
+  )
+  SELECT
+      pg.player_id,
+      pg.game_id,
+      pg.game_name,
+      pg.game_date,    
+      pg.stat
+  FROM
+      PlayerPointsPerGame pg
+  ORDER BY
+      pg.game_date, pg.game_id;`;
+
+  switch (actionType) {
+    case ACTION_TYPES.assist:
+      query = query.replace(
+        "@@STAT_CONDITION@@",
+        `SUM(case when a.act_type = 'assist' then 1 else 0 end ) as stat`
+      );
+      break;
+    case ACTION_TYPES.steal:
+      query = query.replace(
+        "@@STAT_CONDITION@@",
+        `SUM(case when a.act_type = 'steal' then 1 else 0 end ) as stat`
+      );
+      break;
+    case ACTION_TYPES.turnover:
+      query = query.replace(
+        "@@STAT_CONDITION@@",
+        `SUM(case when a.act_type = 'turnover' then 1 else 0 end ) as stat`
+      );
+      break;
+    case ACTION_TYPES.rebound:
+      query = query.replace(
+        "@@STAT_CONDITION@@",
+        `SUM(case when a.act_type = 'rebound' then 1 else 0 end ) as stat`
+      );
+      break;
+    case ACTION_TYPES.twoPtMiss:
+      query = query.replace(
+        "@@STAT_CONDITION@@",
+        `SUM(case when a.act_type = 'twoPtMiss' then 1 else 0 end ) as stat`
+      );
+      break;
+    case ACTION_TYPES.threePtMiss:
+      query = query.replace(
+        "@@STAT_CONDITION@@",
+        `SUM(case when a.act_type = 'threePtMiss' then 1 else 0 end ) as stat`
+      );
+      break;
+    case ACTION_TYPES.twoPtMake:
+      query = query.replace(
+        "@@STAT_CONDITION@@",
+        `SUM(case when a.act_type = 'twoPtMake' then 1 else 0 end ) as stat`
+      );
+      break;
+    case ACTION_TYPES.threePtMake:
+      query = query.replace(
+        "@@STAT_CONDITION@@",
+        `SUM(case when a.act_type = 'threePtMake' then 1 else 0 end ) as stat`
+      );
+      break;
+    case ACTION_TYPES.block:
+      query = query.replace(
+        "@@STAT_CONDITION@@",
+        `SUM(case when a.act_type = 'block' then 1 else 0 end ) as stat`
+      );
+      break;
+    default:
+      query = query.replace(
+        "@@STAT_CONDITION@@",
+        `SUM(CASE 
+              WHEN a.act_type = 'twoPtMake' THEN 2 
+              WHEN a.act_type = 'threePtMake' THEN 3 
+              ELSE 0 
+          END) AS stat`
+      );
+      break;
+  }
+
+  const { rows } = await db.query(query, [playerId]);
   return rows;
 }
 
@@ -105,5 +169,5 @@ module.exports = {
   getAllPlayers,
   createPlayerDB,
   getCareerHighsDB,
-  getPointsByPlayerDB,
+  getChartStatsByPlayerDB,
 };

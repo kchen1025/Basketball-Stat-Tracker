@@ -25,7 +25,31 @@ const pivotByDay = (arr) => {
   }, new Map());
 };
 
+const getKeysAndDataFromMap = (daysMap) => {
+  const data = [];
+  const gameKeys = new Set();
+
+  daysMap.forEach((games, day, map) => {
+    const curr = {};
+    curr["day"] = day;
+    for (const game of games) {
+      const { day, game: gameName } = getGameAndDay(game.game_name);
+
+      const gameKey = `G${gameName}`;
+      curr[gameKey] = game.stat;
+
+      gameKeys.add(gameKey);
+    }
+    data.push({ ...curr });
+  });
+
+  const keys = Array.from(gameKeys).sort();
+
+  return { keys, data };
+};
+
 module.exports = {
   pivot,
   pivotByDay,
+  getKeysAndDataFromMap,
 };
