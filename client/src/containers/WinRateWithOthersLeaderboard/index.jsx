@@ -32,7 +32,6 @@ const WinRateWithOthersLeaderboard = () => {
         aria-label="basic table"
         stickyHeader
         stripe="odd"
-        sx={{ width: 600 }}
       >
         <thead>
           <tr>

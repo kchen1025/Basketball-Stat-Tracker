@@ -86,7 +86,6 @@ const DataTable = ({
         stickyHeader
         stripe="odd"
         hoverRow
-        sx={{ width: 600 }}
       >
         <EnhancedTableHead
           order={order}
