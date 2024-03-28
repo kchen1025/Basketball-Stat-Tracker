@@ -12,6 +12,10 @@ export const getCareerHighs = async () => {
   return await API.get(`/api/players/career-highs`);
 };
 
-export const getPointsByPlayer = async (playerId) => {
-  return await API.get(`/api/player/${playerId}/points`);
+export const getChartStatsByPlayer = async (playerId, actionType = null) => {
+  return await API.get(
+    `/api/player/${playerId}/stats${
+      actionType ? `?actionType=${actionType}` : ""
+    }`
+  );
 };

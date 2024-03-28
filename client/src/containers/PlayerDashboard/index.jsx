@@ -1,7 +1,7 @@
-import { getPointsByPlayer, getAllPlayers } from "@/api/player";
+import { getChartStatsByPlayer, getAllPlayers } from "@/api/player";
 import InputAutocomplete from "@/components/InputAutocomplete";
 import { useState, useEffect } from "react";
-import { Box, Typography, Divider } from "@mui/joy";
+import { Box, Typography, Divider, Select, Option } from "@mui/joy";
 
 export async function loader({ params }) {
   const { results: allPlayers } = await getAllPlayers();
@@ -13,10 +13,12 @@ import { Bar } from "@nivo/bar";
 
 import { Sheet } from "@mui/joy";
 import { useLoaderData } from "react-router-dom";
+import { STATS } from "@/constants";
 
 const PlayerDashboard = () => {
   const { allPlayers } = useLoaderData();
   const [spotlightPlayer, setSpotlightPlayer] = useState({});
+  const [selectedStat, setSelectedStat] = useState("");
   const [chartData, setChartData] = useState({ data: [], keys: [] });
 
   useEffect(() => {
@@ -26,10 +28,17 @@ const PlayerDashboard = () => {
       return;
     }
 
-    getPointsByPlayer(playerId).then(({ data, keys }) => {
+    getChartStatsByPlayer(playerId, selectedStat).then(({ data, keys }) => {
       setChartData({ ...chartData, data, keys });
     });
-  }, [spotlightPlayer]);
+  }, [spotlightPlayer, selectedStat]);
+
+  const handleStatChange = (e, statName) => {
+    setSelectedStat(statName);
+  };
+
+  // push points into the stats objects because it doesn't matter anyways, just for a better user experience
+  STATS["points"] = "points";
 
   return (
     <Sheet sx={{ overflowX: "auto" }}>
@@ -52,6 +61,18 @@ const PlayerDashboard = () => {
             triggerSnackbar({ message: "Pls only pick from current players" });
           }}
         />
+        <Select
+          placeholder="Select a stat. Defaults to POINTS"
+          onChange={handleStatChange}
+        >
+          {Object.keys(STATS).map((key, i) => {
+            return (
+              <Option key={`${STATS[key]}-${i}`} value={STATS[key]}>
+                {STATS[key]}
+              </Option>
+            );
+          })}
+        </Select>
         <Box mb={2}></Box>
       </Box>
       <Sheet sx={{ backgroundColor: "white", minWidth: 1700 }}>
