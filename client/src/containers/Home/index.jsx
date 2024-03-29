@@ -94,7 +94,7 @@ const Home = () => {
   const handleDayChange = (e, dayName) => {
     setSelectedDay(dayName);
     // since we are just doing a database LIKE search, this works equally well
-    fetchDashboard(dayName);
+    fetchDashboard(`${dayName}G`);
   };
 
   const handleEditGame = () => {
