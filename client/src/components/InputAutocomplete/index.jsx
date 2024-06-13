@@ -22,6 +22,7 @@ export default function InputAutocomplete({
   teamId,
   onExistingPlayerSelected,
   onNewPlayerAdded,
+  headerText = "Add a player",
   footerText,
 }) {
   const [value, setValue] = React.useState(null);
@@ -56,7 +57,7 @@ export default function InputAutocomplete({
   return (
     <React.Fragment>
       <FormControl>
-        <FormLabel>Add a player</FormLabel>
+        <FormLabel>{headerText}</FormLabel>
         <Autocomplete
           value={value}
           disabled={hasConfirmedTeam}

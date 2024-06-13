@@ -2,18 +2,16 @@ import { getChartStatsByPlayer, getAllPlayers } from "@/api/player";
 import InputAutocomplete from "@/components/InputAutocomplete";
 import { useState, useEffect } from "react";
 import { Box, Typography, Divider, Select, Option } from "@mui/joy";
+import { Bar } from "@nivo/bar";
+import { Sheet } from "@mui/joy";
+import { useLoaderData } from "react-router-dom";
+import { STATS } from "@/constants";
 
 export async function loader({ params }) {
   const { results: allPlayers } = await getAllPlayers();
 
   return { allPlayers };
 }
-
-import { Bar } from "@nivo/bar";
-
-import { Sheet } from "@mui/joy";
-import { useLoaderData } from "react-router-dom";
-import { STATS } from "@/constants";
 
 const PlayerDashboard = () => {
   const { allPlayers } = useLoaderData();
@@ -51,6 +49,7 @@ const PlayerDashboard = () => {
           {spotlightPlayer.name}
         </Typography>
         <InputAutocomplete
+          headerText="Select a player to analyze"
           players={allPlayers}
           allSelectedPlayers={[]}
           teamId={0}

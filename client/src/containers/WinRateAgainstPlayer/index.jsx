@@ -38,6 +38,7 @@ const WinRateAgainstPlayer = () => {
     <Box display="flex" justifyContent={"center"} margin={5}>
       <Box display="flex" flexDirection={"column"} alignContent={"center"}>
         <InputAutocomplete
+          headerText="Select a player to analyze"
           players={allPlayers}
           allSelectedPlayers={[]}
           teamId={0}

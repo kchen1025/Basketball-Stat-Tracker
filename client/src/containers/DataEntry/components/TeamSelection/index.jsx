@@ -21,6 +21,7 @@ const TeamSelection = ({
       {header}
       <Divider sx={{ marginTop: 1, marginBottom: 1 }} />
       <InputAutocomplete
+        headerText="Add player or pick existing"
         players={players}
         allSelectedPlayers={allSelectedPlayers}
         teamId={teamId}
